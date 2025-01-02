@@ -18,6 +18,7 @@ services:
       MYSQL_HOST: db
       MYSQL_PORT: 3306
       MODE: "production"
+      JWT_SECRET: ${JWT_SECRET}
     ports:
       - "8000:8000"
     depends_on:

@@ -21,6 +21,7 @@ services:
       MYSQL_HOST: db
       MYSQL_PORT: 3306
       MODE: "development"
+      JWT_SECRET: ${JWT_SECRET}
     ports:
       - "8000:8000"
     volumes:
