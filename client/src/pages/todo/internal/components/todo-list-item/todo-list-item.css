@@ -1,0 +1,68 @@
+.TodoList__item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background-color: white;
+  padding: 16px;
+  border-radius: 4px;
+  height: 40px;
+}
+
+.TodoList__title {
+  flex: 1;
+}
+
+.TodoList__title--completed {
+  text-decoration: line-through;
+}
+
+.TodoList__delete-button {
+  background-color: var(--danger-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.TodoList__toggle-button {
+  width: 20px;
+  height: 20px;
+}
+
+.TodoList__update-button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.TodoList__edit-button {
+  color: #707070;
+  background: none;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.TodoList__edit-button:hover {
+  background-color: #f0f0f0;
+}
+
+.TodoList__error {
+  color: var(--danger-color);
+}
+
+.TodoList__form {
+  flex: 1;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}

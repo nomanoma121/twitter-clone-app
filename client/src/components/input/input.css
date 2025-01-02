@@ -1,0 +1,16 @@
+.Input {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 16px;
+}
+
+.Input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.Input::placeholder {
+  color: #ccc;
+}
