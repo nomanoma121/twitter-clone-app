@@ -87,10 +87,19 @@ Server側は、`server`ディレクトリがボリュームとしてマウント
 docker-compose -f docker-compose.dev.yml restart
 ```
 
+ただし、マイグレーションファイルを更新した場合などDBのスキーマが更新される場合は、ボリュームの再作成を推奨します。
+(この時DBのデータは全て消えるので注意してください。開発時はseederを作るなどしてダミーデータを生成すると良いでしょう)
+
+```bash
+docker-compose -f docker-compose.dev.yml down -v
+docker-compose -f docker-compose.dev.yml up --build
+```
+
 ### Client側の更新反映
 
 基本的には、Viteのホットリロードが有効になっているため、Client側のファイルを更新するだけで更新が反映されます。
 ライブラリの追加などでnode_modulesの更新が予期される場合は、virtual volumeの`node_modules`を削除する必要があります。
+(この時DBのデータは全て消えるので注意してください。開発時はseederを作るなどしてダミーデータを生成すると良いでしょう)
 
 ```bash
 docker-compose -f docker-compose.dev.yml down -v
