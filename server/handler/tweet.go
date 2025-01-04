@@ -31,11 +31,17 @@ type GetTweetsResponseUser struct {
 	Email string `json:"email"`
 }
 
+type GetTweetsResponseRetweet struct {
+	ID      int                   `json:"id"`
+	User    GetTweetsResponseUser `json:"user"`
+	Content string                `json:"content"`
+}
+
 type GetTweetsResponse struct {
-	ID        int                   `json:"id"`
-	User      GetTweetsResponseUser `json:"user"`
-	Content   string                `json:"content"`
-	RetweetID *int                  `json:"retweet_id"`
+	ID      int                       `json:"id"`
+	User    GetTweetsResponseUser     `json:"user"`
+	Content string                    `json:"content"`
+	Retweet *GetTweetsResponseRetweet `json:"retweet"`
 }
 
 func (h *TweetHandler) GetTweets(c echo.Context) error {
@@ -58,6 +64,46 @@ func (h *TweetHandler) GetTweets(c echo.Context) error {
 		}
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
+	var retweets []model.Tweet
+	var retweetIDs []int
+	for _, tweet := range tweets {
+		if tweet.RetweetID != nil {
+			retweetIDs = append(retweetIDs, *tweet.RetweetID)
+		}
+	}
+	if len(retweetIDs) > 0 {
+		query, args, err := sqlx.In(`
+			SELECT tweets.*, users.id as "user.id", users.name as "user.name", users.email as "user.email"
+			FROM tweets
+			JOIN users ON tweets.user_id = users.id
+			WHERE tweets.id IN (?)
+		`, retweetIDs)
+		if err != nil {
+			log.Println(err)
+			return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+		}
+		err = h.db.Select(&retweets, query, args...)
+		if err != nil {
+			log.Println(err)
+			return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+		}
+	}
+	var retweetMap = map[int]model.Tweet{}
+	for _, retweet := range retweets {
+		retweetMap[retweet.ID] = retweet
+	}
+	for i, tweet := range tweets {
+		if tweet.RetweetID != nil {
+      retweet, ok := retweetMap[*tweet.RetweetID]
+			if !ok {
+				return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+			}
+			tweets[i].Retweet = &retweet
+		}
+	}
+
+	fmt.Printf("retweets: %#v\n", retweets)
+
 	// fmt.Printf("tweets: %#v\n", tweets)
 	for _, tweet := range tweets {
 		fmt.Printf("tweet: %#v\n", tweet)
@@ -66,6 +112,14 @@ func (h *TweetHandler) GetTweets(c echo.Context) error {
 
 	res := make([]GetTweetsResponse, len(tweets))
 	for i, tweet := range tweets {
+		retweet := (*GetTweetsResponseRetweet)(nil)
+		if tweet.Retweet != nil {
+			retweet = &GetTweetsResponseRetweet{
+				ID:      tweet.Retweet.ID,
+				User:    GetTweetsResponseUser{ID: tweet.Retweet.User.ID, Name: tweet.Retweet.User.Name, Email: tweet.Retweet.User.Email},
+				Content: tweet.Retweet.Content,
+			}
+		}
 		res[i] = GetTweetsResponse{
 			ID: tweet.ID,
 			User: GetTweetsResponseUser{
@@ -73,8 +127,8 @@ func (h *TweetHandler) GetTweets(c echo.Context) error {
 				Name:  tweet.User.Name,
 				Email: tweet.User.Email,
 			},
-			Content:   tweet.Content,
-			RetweetID: tweet.RetweetID,
+			Content: tweet.Content,
+			Retweet: retweet,
 		}
 	}
 
