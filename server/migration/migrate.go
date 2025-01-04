@@ -13,7 +13,47 @@ func Migrate(db *sqlx.DB) error {
 			password_hash VARCHAR(255) NOT NULL,
 			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-		)
+		);
+	`)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS tweets (
+			id INT PRIMARY KEY AUTO_INCREMENT,
+			user_id INT NOT NULL,
+			content TEXT NOT NULL,
+			retweet_id INT,
+			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+		);
+	`)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS follows (
+			id INT PRIMARY KEY AUTO_INCREMENT,
+			follower_id INT NOT NULL,
+			followee_id INT NOT NULL,
+			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+		);
+	`)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS goods (
+			id INT PRIMARY KEY AUTO_INCREMENT,
+			user_id INT NOT NULL,
+			tweet_id INT NOT NULL,
+			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+		);
 	`)
 	if err != nil {
 		return err
@@ -26,9 +66,8 @@ func Migrate(db *sqlx.DB) error {
 			title VARCHAR(255) NOT NULL,
 			completed BOOLEAN NOT NULL DEFAULT FALSE,
 			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-			FOREIGN KEY (user_id) REFERENCES users(id)
-		)
+			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+		);
 	`)
 	if err != nil {
 		return err

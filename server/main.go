@@ -98,6 +98,8 @@ func main() {
 	apiGroup.Use(authMiddleware.Middleware())
 	todoHandler := handler.NewTodoHandler(db)
 	todoHandler.Register(apiGroup)
-
+	tweetHandler := handler.NewTweetHandler(db)
+	tweetHandler.Register(apiGroup)
+	
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", APP_PORT)))
 }
