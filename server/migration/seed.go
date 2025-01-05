@@ -22,6 +22,16 @@ var users = []InsertUser{
 		Email:    "user2@example.com",
 		Password: "password2",
 	},
+	{
+		Name:     "user3",
+		Email:    "user3@example.com",
+		Password: "password3",
+	},
+	{
+		Name:     "user4",
+		Email:    "user4@example.com",
+		Password: "password4",
+	},
 }
 
 type InsertTweet struct {
@@ -74,6 +84,14 @@ var follows = []InsertFollow{
 	{
 		FollowerID: 2,
 		FolloweeID: 1,
+	},
+	{
+		FollowerID: 2,
+		FolloweeID: 4,
+	},
+	{
+		FollowerID: 3,
+		FolloweeID: 2,
 	},
 }
 
