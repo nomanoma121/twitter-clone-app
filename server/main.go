@@ -100,6 +100,8 @@ func main() {
 	todoHandler.Register(apiGroup)
 	tweetHandler := handler.NewTweetHandler(db)
 	tweetHandler.Register(apiGroup)
-
+	userHandler := handler.NewUserHandler(db)
+	userHandler.Register(apiGroup)
+	
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", APP_PORT)))
 }

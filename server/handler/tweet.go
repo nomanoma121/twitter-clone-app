@@ -23,8 +23,8 @@ func NewTweetHandler(db *sqlx.DB) *TweetHandler {
 
 func (h *TweetHandler) Register(g *echo.Group) {
 	g.GET("/tweets", h.GetTweets)
-	g.POST("/tweets", h.CreateTweet)
-	g.POST("/retweets", h.Retweet)
+	g.POST("/tweet", h.CreateTweet)
+	g.POST("/retweet", h.Retweet)
 }
 
 type GetTweetsResponseUser struct {
