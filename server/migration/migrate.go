@@ -39,7 +39,8 @@ func Migrate(db *sqlx.DB) error {
 			follower_id INT NOT NULL,
 			followee_id INT NOT NULL,
 			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			UNIQUE(follower_id, followee_id)
 		);
 	`)
 	if err != nil {
@@ -70,6 +71,37 @@ func Migrate(db *sqlx.DB) error {
 		);
 	`)
 	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+var tables = []string{
+	"users",
+	"tweets",
+	"follows",
+	"goods",
+	"todos",
+}
+
+func Truncate(db *sqlx.DB) error {
+	for _, table := range tables {
+		_, err := db.Exec("TRUNCATE TABLE " + table)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func Reset(db *sqlx.DB) error {
+	if err := Truncate(db); err != nil {
+		return err
+	}
+
+	if err := Migrate(db); err != nil {
 		return err
 	}
 

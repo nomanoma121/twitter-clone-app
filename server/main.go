@@ -81,6 +81,8 @@ func main() {
 		e.Use(echoMiddleware.Logger())
 		e.Use(echoMiddleware.Recover())
 		e.Use(echoMiddleware.CORS())
+		debugHandler := handler.NewDebugHandler(db)
+		debugHandler.Register(e.Group("/debug"))
 	} else {
 		e.Use(echoMiddleware.CORSWithConfig(echoMiddleware.CORSConfig{
 			AllowOrigins: []string{origin},
@@ -102,6 +104,6 @@ func main() {
 	tweetHandler.Register(apiGroup)
 	userHandler := handler.NewUserHandler(db)
 	userHandler.Register(apiGroup)
-	
+
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", APP_PORT)))
 }
