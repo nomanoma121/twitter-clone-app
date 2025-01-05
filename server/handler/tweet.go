@@ -23,6 +23,8 @@ func NewTweetHandler(db *sqlx.DB) *TweetHandler {
 
 func (h *TweetHandler) Register(g *echo.Group) {
 	g.GET("/tweets", h.GetTweets)
+	g.POST("/tweets", h.CreateTweet)
+	g.POST("/retweets", h.Retweet)
 }
 
 type GetTweetsResponseUser struct {
@@ -78,6 +80,8 @@ func (h *TweetHandler) GetTweets(c echo.Context) error {
 			JOIN users ON tweets.user_id = users.id
 			WHERE tweets.id IN (?)
 		`, retweetIDs)
+		fmt.Printf("query: %v\n", query)
+		fmt.Printf("args: %v\n", args)
 		if err != nil {
 			log.Println(err)
 			return c.JSON(500, map[string]string{"message": "Internal Server Error"})
@@ -133,4 +137,75 @@ func (h *TweetHandler) GetTweets(c echo.Context) error {
 	}
 
 	return c.JSON(200, res)
+}
+
+type CreateTweetRequest struct {
+	Content string `json:"content" validate:"required"`
+}
+
+func (h *TweetHandler) CreateTweet(c echo.Context) error {
+	userID := c.Get("user_id").(int)
+
+	req := new(CreateTweetRequest)
+	if err := c.Bind(req); err != nil {
+		return c.JSON(400, map[string]string{"message": "Bad Request"})
+	}
+
+	fmt.Printf("req: %#v\n", req)
+
+	if err := h.validator.Struct(req); err != nil {
+		return c.JSON(400, map[string]string{"message": "Bad Request"})
+	}
+
+	_, err := h.db.Exec("INSERT INTO tweets (user_id, content) VALUES (?, ?)", userID, req.Content)
+	if err != nil {
+		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+	}
+
+	return c.NoContent(201)
+}
+
+type RetweetRequest struct {
+	TweetID int `json:"tweet_id" validate:"required"`
+	Content *string `json:"content"`
+}
+
+func (h *TweetHandler) Retweet(c echo.Context) error {
+	userID := c.Get("user_id").(int)
+
+	req := new(RetweetRequest)
+	if err := c.Bind(req); err != nil {
+		return c.JSON(400, map[string]string{"message": "Bad Request"})
+	}
+
+	if err := h.validator.Struct(req); err != nil {
+		return c.JSON(400, map[string]string{"message": "Bad Request"})
+	}
+
+	var tweet model.Tweet
+	err := h.db.Get(&tweet, "SELECT * FROM tweets WHERE id = ?", req.TweetID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.JSON(404, map[string]string{"message": "Not Found"})
+		}
+		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+	}
+
+	if tweet.RetweetID != nil {
+		return c.JSON(400, map[string]string{"message": "Bad Request"})
+	}
+
+	if req.Content == nil {
+		_, err = h.db.Exec("INSERT INTO tweets (user_id, retweet_id) VALUES (?, ?)", userID, req.TweetID)
+		if err != nil {
+			return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+		}
+	} else {
+		_, err = h.db.Exec("INSERT INTO tweets (user_id, retweet_id, content) VALUES (?, ?, ?)", userID, req.TweetID, *req.Content)
+		if err != nil {
+			return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+		}
+	}
+
+	return c.NoContent(201)
 }
