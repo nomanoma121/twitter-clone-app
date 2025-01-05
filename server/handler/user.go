@@ -23,7 +23,7 @@ func NewUserHandler(db *sqlx.DB) *UserHandler {
 func (h *UserHandler) Register(g *echo.Group) {
 	g.POST("/users/follow", h.Follow)
 	g.GET("/users/followers", h.GetFollowers)
-	// g.GET("/users/followees", h.GetFollowees)
+	g.GET("/users/followees", h.GetFollowees)
 }
 
 type FollowRequest struct {
@@ -85,6 +85,43 @@ func (h *UserHandler) GetFollowers(c echo.Context) error {
 			ID:    follower.ID,
 			Name:  follower.Name,
 			Email: follower.Email,
+		}
+	}
+
+	return c.JSON(200, res)
+}
+
+type GetFolloweesResponse struct {
+	ID    int    `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+func (h *UserHandler) GetFollowees(c echo.Context) error {
+	userID := c.Get("user_id").(int)
+
+	var followees []model.User
+	err := h.db.Select(&followees, `
+		SELECT users.*
+		FROM users
+		JOIN follows ON users.id = follows.followee_id
+		WHERE follows.follower_id = ?
+	`, userID)
+
+	if err != nil {
+		log.Println(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.JSON(200, []GetFolloweesResponse{})
+		}
+		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+	}
+
+	res := make([]GetFolloweesResponse, len(followees))
+	for i, followee := range followees {
+		res[i] = GetFolloweesResponse{
+			ID:    followee.ID,
+			Name:  followee.Name,
+			Email: followee.Email,
 		}
 	}
 
