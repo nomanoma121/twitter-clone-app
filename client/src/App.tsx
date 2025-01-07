@@ -8,6 +8,8 @@ const Top = lazy(() => import("./pages/top"));
 const Todo = lazy(() => import("./pages/todo"));
 const Login = lazy(() => import("./pages/login"));
 const SignUp = lazy(() => import("./pages/signup"));
+const Home = lazy(() => import("./pages/home"));
+// const Tweet = lazy(() => import("./pages/tweet"));
 
 function App() {
   return (
@@ -26,6 +28,8 @@ function App() {
           />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/home" element={<Home />} />
+          {/* <Route path="/compose/tweet" element={<Tweet />} /> */}
         </Routes>
       </Container>
     </>
