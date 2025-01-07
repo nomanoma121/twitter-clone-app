@@ -108,7 +108,6 @@ func (h *TweetHandler) GetTweets(c echo.Context) error {
 
 	fmt.Printf("retweets: %#v\n", retweets)
 
-	// fmt.Printf("tweets: %#v\n", tweets)
 	for _, tweet := range tweets {
 		fmt.Printf("tweet: %#v\n", tweet)
 	}
