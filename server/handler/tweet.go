@@ -3,7 +3,6 @@ package handler
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"log"
 	"server/model"
 	"time"
@@ -30,24 +29,19 @@ func (h *TweetHandler) Register(g *echo.Group) {
 }
 
 type GetAllTweetsResponseUser struct {
-	ID    int    `json:"id"`
+	ID        int    `json:"id"`
 	DisplayID string `json:"display_id"`
-	Name  string `json:"name"`
+	Name      string `json:"name"`
 }
 
 type GetAllTweetsResponseRetweet struct {
-	ID      int                      `json:"id"`
-	User    GetAllTweetsResponseUser `json:"user"`
-	Content string                   `json:"content"`
-	CreatedAt time.Time               `json:"created_at"`
+	ID        int                      `json:"id"`
+	User      GetAllTweetsResponseUser `json:"user"`
+	Content   string                   `json:"content"`
+	CreatedAt time.Time                `json:"created_at"`
 }
 
-type GetAllTweetsResponseReply struct {
-	ID      int                      `json:"id"`
-	User    GetAllTweetsResponseUser `json:"user"`
-	Content string                   `json:"content"`
-	CreatedAt time.Time               `json:"created_at"`
-}
+type GetAllTweetsResponseReply = GetAllTweetsResponseRetweet
 
 type GetAllTweetsResponse struct {
 	ID        int                          `json:"id"`
@@ -58,115 +52,150 @@ type GetAllTweetsResponse struct {
 	CreatedAt time.Time                    `json:"created_at"`
 }
 
-// Retweet or Replyがある場合はそれを取得し、Tweetに加える関数
-func getRetweetOrReply(actions *[]model.Tweet, tweets *[]model.Tweet) {
-	// 参照先のTweetのIDを格納するスライス
-	var actionsIDs []int
-	for _, tweet := range tweets {
-		// RetweetとReplyを同時に行うことはない
-		if tweet.RetweetID != nil {
-			actionsIDs = append(actionsIDs, *tweet.RetweetID)
-		} else if tweet.ReplyID != nil {
-			actionsIDs = append(actionsIDs, *tweet.ReplyID)
-		}
-	}
-	if len(actionsIDs) > 0 {
-		// retweetかreplyする参照先のTweetをしたUser情報を取得
-		query, args, err := sqlx.In(`
-			SELECT tweets.*, users.id as "user.id", users.name as "user.name", users.display_id as "user.display_id"
-			FROM tweets
-			JOIN users ON tweets.user_id = users.id
-			WHERE tweets.id IN (?)
-		`, actionsIDs)
-		if err != nil {
-			log.Println(err)
-		}
-
-	err = h.db.Select(actions, query, args...)
+func (h *TweetHandler) GetAllTweets(c echo.Context) error {
+	tweets, err := h.fetchTweets()
 	if err != nil {
-		log.Println(err)
+		return h.handleError(c, err)
 	}
-	// retweetかreplyが参照するTweetをretweetかreplyに加える
-	var actionsMap = map[int]model.Tweet{}
-	for _, action := range *actions {
-		actionsMap[action.ID] = action
+
+	retweetMap, replyMap, err := h.fetchRelatedTweets(tweets)
+	if err != nil {
+		return h.handleError(c, err)
 	}
-	// retweetかreplyが参照するTweetをretweetかreplyに加える
-	for i, tweet := range *tweets {
-		if tweet.RetweetID != nil {
-			action, ok := actionsMap[*tweet.RetweetID]
-			if !ok {
-				return
-			}
-			(*tweets)[i].Retweet = &action
-		} else if tweet.ReplyID != nil {
-			action, ok := actionsMap[*tweet.ReplyID]
-			if !ok {
-				return
-			}
-			(*tweets)[i].Reply = &action
-		}
-	}
+
+	h.populateRelatedTweets(tweets, retweetMap, replyMap)
+
+	response := h.buildResponse(tweets)
+	return c.JSON(200, response)
 }
 
-func (h *TweetHandler) GetAllTweets(c echo.Context) error {
+func (h *TweetHandler) fetchTweets() ([]model.Tweet, error) {
 	var tweets []model.Tweet
-	// データベースからすべてのツイートを取得
 	err := h.db.Select(&tweets, `
 		SELECT tweets.*, users.id as "user.id", users.name as "user.name", users.display_id as "user.display_id"
 		FROM tweets
 		JOIN users ON tweets.user_id = users.id
 	`)
-	if err != nil {
-		log.Println(err)
-		if errors.Is(err, sql.ErrNoRows) {
-			return c.JSON(200, []GetAllTweetsResponse{})
-		}
-		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
 	}
-	var retweets []model.Tweet
-	var replies []model.Tweet
-	// RetweetとReplyを取得
-	getRetweetOrReply(&retweets, &tweets)
-	getRetweetOrReply(&replies, &tweets)
+	return tweets, err
+}
 
-	res := make([]GetAllTweetsResponse, len(tweets))
+func (h *TweetHandler) fetchRelatedTweets(tweets []model.Tweet) (map[int]model.Tweet, map[int]model.Tweet, error) {
+	retweetIDs, replyIDs := h.extractRelatedIDs(tweets)
+
+	retweets, err := h.fetchTweetsByIDs(retweetIDs)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	replies, err := h.fetchTweetsByIDs(replyIDs)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return h.buildTweetMap(retweets), h.buildTweetMap(replies), nil
+}
+
+func (h *TweetHandler) extractRelatedIDs(tweets []model.Tweet) ([]int, []int) {
+	var retweetIDs, replyIDs []int
+	for _, tweet := range tweets {
+		if tweet.RetweetID != nil {
+			retweetIDs = append(retweetIDs, *tweet.RetweetID)
+		}
+		if tweet.ReplyID != nil {
+			replyIDs = append(replyIDs, *tweet.ReplyID)
+		}
+	}
+	return retweetIDs, replyIDs
+}
+
+func (h *TweetHandler) fetchTweetsByIDs(ids []int) ([]model.Tweet, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	query, args, err := sqlx.In(`
+		SELECT tweets.*, users.id as "user.id", users.name as "user.name", users.display_id as "user.display_id"
+		FROM tweets
+		JOIN users ON tweets.user_id = users.id
+		WHERE tweets.id IN (?)
+	`, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	var tweets []model.Tweet
+	err = h.db.Select(&tweets, query, args...)
+	return tweets, err
+}
+
+func (h *TweetHandler) buildTweetMap(tweets []model.Tweet) map[int]model.Tweet {
+	result := make(map[int]model.Tweet)
+	for _, tweet := range tweets {
+		result[tweet.ID] = tweet
+	}
+	return result
+}
+
+func (h *TweetHandler) populateRelatedTweets(tweets []model.Tweet, retweetMap, replyMap map[int]model.Tweet) {
 	for i, tweet := range tweets {
-		retweet := (*GetAllTweetsResponseRetweet)(nil)
-		if tweet.Retweet != nil {
-			retweet = &GetAllTweetsResponseRetweet{
-				ID:      tweet.Retweet.ID,
-				User:    GetAllTweetsResponseUser{ID: tweet.Retweet.User.ID, Name: tweet.Retweet.User.Name, DisplayID: tweet.Retweet.User.DisplayID},
-				Content: tweet.Retweet.Content,
-				CreatedAt: tweet.Retweet.CreatedAt,
-			}
+		if tweet.RetweetID != nil {
+			tweets[i].Retweet = h.lookupTweet(retweetMap, *tweet.RetweetID)
 		}
-		reply := (*GetAllTweetsResponseReply)(nil)
-		if tweet.Reply != nil {
-			reply = &GetAllTweetsResponseReply{
-				ID:      tweet.Reply.ID,
-				User: 	GetAllTweetsResponseUser{ID: tweet.Reply.User.ID, Name: tweet.Reply.User.Name, DisplayID: tweet.Reply.User.DisplayID},
-				Content: tweet.Reply.Content,
-				CreatedAt: tweet.Reply.CreatedAt,
-			}
+		if tweet.ReplyID != nil {
+			tweets[i].Reply = h.lookupTweet(replyMap, *tweet.ReplyID)
 		}
-		res[i] = GetAllTweetsResponse{
+	}
+}
+
+func (h *TweetHandler) lookupTweet(tweetMap map[int]model.Tweet, id int) *model.Tweet {
+	if tweet, exists := tweetMap[id]; exists {
+		return &tweet
+	}
+	return nil
+}
+
+func (h *TweetHandler) buildResponse(tweets []model.Tweet) []GetAllTweetsResponse {
+	response := make([]GetAllTweetsResponse, len(tweets))
+	for i, tweet := range tweets {
+		response[i] = GetAllTweetsResponse{
 			ID: tweet.ID,
 			User: GetAllTweetsResponseUser{
-				ID:    tweet.User.ID,
-				Name:  tweet.User.Name,
+				ID:        tweet.User.ID,
+				Name:      tweet.User.Name,
 				DisplayID: tweet.User.DisplayID,
 			},
 			Content: tweet.Content,
-			Retweet: retweet,
-			Reply: reply,
+			Retweet: h.buildRetweetResponse(tweet.Retweet),
+			Reply:   h.buildRetweetResponse(tweet.Reply),
 			CreatedAt: tweet.CreatedAt,
 		}
 	}
-
-	return c.JSON(200, res)
+	return response
 }
 
+func (h *TweetHandler) buildRetweetResponse(tweet *model.Tweet) *GetAllTweetsResponseRetweet {
+	if tweet == nil {
+		return nil
+	}
+	return &GetAllTweetsResponseRetweet{
+		ID: tweet.ID,
+		User: GetAllTweetsResponseUser{
+			ID:        tweet.User.ID,
+			Name:      tweet.User.Name,
+			DisplayID: tweet.User.DisplayID,
+		},
+		Content:   tweet.Content,
+		CreatedAt: tweet.CreatedAt,
+	}
+}
+
+func (h *TweetHandler) handleError(c echo.Context, err error) error {
+	log.Println(err)
+	return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+}
 
 type GetTweetsResponseUser struct {
 	ID    int    `json:"id"`
@@ -348,4 +377,59 @@ func (h *TweetHandler) Retweet(c echo.Context) error {
 	}
 
 	return c.NoContent(201)
+}
+
+// Retweet or Replyがある場合はそれを取得し、Tweetに加える関数
+func getRetweet(retweets *[]model.Tweet, tweets *[]model.Tweet) {
+	var retweetsIDs []int
+	for _, tweet := range *tweets {
+		if tweet.RetweetID != nil {
+			retweetsIDs = append(retweetsIDs, *tweet.RetweetID)
+		}
+	}
+	if len(retweetsIDs) > 0 {
+		// getTweetsWithUserでRetweetを取得
+
+	var retweetMap = map[int]model.Tweet{}
+	for _, retweet := range *retweets {
+		retweetMap[retweet.ID] = retweet
+	}
+	for i, tweet := range *tweets {
+		if tweet.RetweetID != nil {
+			retweet, ok := retweetMap[*tweet.RetweetID]
+			if !ok {
+				return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+			}
+			(*tweets)[i].Retweet = &retweet
+		}
+	}
+}
+
+// func getReply(r *model.Tweet, tweets *[]model.Tweet) {
+// 	var replyIDs []int
+// 	for _, tweet := range *tweets {
+// 		if tweet.ReplyID != nil {
+// 			replyIDs = append(replyIDs, *tweet.ReplyID)
+// 		}
+// 	}
+
+// }
+
+func (h *TweetHandler) getTweetsWithUser(tweetIDs []int, tweets *[]model.Tweet) error {
+	query, args, err := sqlx.In(`
+		SELECT tweets.*, users.id as "user.id", users.name as "user.name", users.email as "user.email"
+		FROM tweets
+		JOIN users ON tweets.user_id = users.id
+		WHERE tweets.id IN (?)
+	`, tweetIDs)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	err = h.db.Select(&tweets, query, args...)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	return nil
 }
