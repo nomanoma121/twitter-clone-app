@@ -11,7 +11,7 @@ export const Home = () => {
   return (
     <div className="Home">
       <h1>タイムライン</h1>
-      <p>ようこそ、{user.name}さん。今日もTwitterで時間を溶かしましょう！</p>
+      <p>ようこそ、{user.name}さん。</p>
       <TweetList tweets={tweets} refetch={fetchTweets} />
     </div>
   );

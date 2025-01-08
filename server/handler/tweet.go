@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"server/model"
+	"time"
 
 	"github.com/go-playground/validator"
 	"github.com/jmoiron/sqlx"
@@ -23,8 +24,112 @@ func NewTweetHandler(db *sqlx.DB) *TweetHandler {
 
 func (h *TweetHandler) Register(g *echo.Group) {
 	g.GET("/tweets", h.GetTweets)
+	g.GET("/tweets/all", h.GetTweetsAll)
 	g.POST("/tweet", h.CreateTweet)
 	g.POST("/retweet", h.Retweet)
+}
+
+type GetTweetsAllResponseUser struct {
+	ID    int    `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+type GetTweetsAllResponseRetweet struct {
+	ID      int                      `json:"id"`
+	User    GetTweetsAllResponseUser `json:"user"`
+	Content string                   `json:"content"`
+}
+
+type GetTweetsAllResponse struct {
+	ID        int                          `json:"id"`
+	User      GetTweetsAllResponseUser     `json:"user"`
+	Content   string                       `json:"content"`
+	Retweet   *GetTweetsAllResponseRetweet `json:"retweet"`
+	CreatedAt time.Time                    `json:"created_at"`
+}
+
+func (h *TweetHandler) GetTweetsAll(c echo.Context) error {
+	var tweets []model.Tweet
+	// データベースからすべてのツイートを取得
+	err := h.db.Select(&tweets, `
+		SELECT tweets.*, users.id as "user.id", users.name as "user.name", users.email as "user.email"
+		FROM tweets
+		JOIN users ON tweets.user_id = users.id
+	`)
+	if err != nil {
+		log.Println(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.JSON(200, []GetTweetsAllResponse{})
+		}
+		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+	}
+	var retweets []model.Tweet
+	var retweetIDs []int
+	for _, tweet := range tweets {
+		if tweet.RetweetID != nil {
+			retweetIDs = append(retweetIDs, *tweet.RetweetID)
+		}
+	}
+	if len(retweetIDs) > 0 {
+		query, args, err := sqlx.In(`
+			SELECT tweets.*, users.id as "user.id", users.name as "user.name", users.email as "user.email"
+			FROM tweets
+			JOIN users ON tweets.user_id = users.id
+			WHERE tweets.id IN (?)
+		`, retweetIDs)
+		fmt.Printf("query: %v\n", query)
+		fmt.Printf("args: %v\n", args)
+		if err != nil {
+			log.Println(err)
+			return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+		}
+		err = h.db.Select(&retweets, query, args...)
+		if err != nil {
+			log.Println(err)
+			return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+		}
+	}
+	var retweetMap = map[int]model.Tweet{}
+	for _, retweet := range retweets {
+		retweetMap[retweet.ID] = retweet
+	}
+	for i, tweet := range tweets {
+		if tweet.RetweetID != nil {
+			retweet, ok := retweetMap[*tweet.RetweetID]
+			if !ok {
+				return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+			}
+			tweets[i].Retweet = &retweet
+		}
+	}
+
+	fmt.Printf("retweets: %#v\n", retweets)
+
+	for _, tweet := range tweets {
+		fmt.Printf("tweet: %#v\n", tweet)
+	}
+	fmt.Printf("tweets len: %#v\n", len(tweets))
+
+	res := make([]GetTweetsAllResponse, len(tweets))
+	for i, tweet := range tweets {
+		retweet := (*GetTweetsAllResponseRetweet)(nil)
+		if tweet.Retweet != nil {
+			retweet = &GetTweetsAllResponseRetweet{
+				ID:      tweet.Retweet.ID,
+				User:    GetTweetsAllResponseUser{ID: tweet.Retweet.User.ID, Name: tweet.Retweet.User.Name, Email: tweet.Retweet.User.Email},
+				Content: tweet.Retweet.Content,
+			}
+		}
+		res[i] = GetTweetsAllResponse{
+			ID:      tweet.ID,
+			User:    GetTweetsAllResponseUser{ID: tweet.User.ID, Name: tweet.User.Name, Email: tweet.User.Email},
+			Content: tweet.Content,
+			Retweet: retweet,
+		}
+	}
+
+	return c.JSON(200, res)
 }
 
 type GetTweetsResponseUser struct {
@@ -98,7 +203,7 @@ func (h *TweetHandler) GetTweets(c echo.Context) error {
 	}
 	for i, tweet := range tweets {
 		if tweet.RetweetID != nil {
-      retweet, ok := retweetMap[*tweet.RetweetID]
+			retweet, ok := retweetMap[*tweet.RetweetID]
 			if !ok {
 				return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 			}
@@ -165,7 +270,7 @@ func (h *TweetHandler) CreateTweet(c echo.Context) error {
 }
 
 type RetweetRequest struct {
-	TweetID int `json:"tweet_id" validate:"required"`
+	TweetID int     `json:"tweet_id" validate:"required"`
 	Content *string `json:"content"`
 }
 

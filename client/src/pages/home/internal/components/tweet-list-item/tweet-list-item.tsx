@@ -6,10 +6,14 @@ interface TweetListItemProps {
 }
 
 export const TweetListItem = ({ tweet, refetch }: TweetListItemProps) => {
-  // refetchはとりあえず残したいけど今は使わない。エラーだけ外したい
-
+  // refetchはとりあえず残したいけど今は使わない。エラーだけ外したかった
   return (
-    <div className="TweetListItem">
+    <div className="TweetListItem" style={{ border: "1px solid black" }}>
+      <p>{tweet.retweet ? "リツイート" : ""}</p>
+      <div className="TweetListItem__user">
+        <p>{tweet.user.name}</p>
+        <p>@{tweet.user.email}</p>
+      </div>
       <div className="TweetListItem__content">
         <p>{tweet.content}</p>
         <p className="TweetListItem__content__date">{tweet.createdAt}</p>

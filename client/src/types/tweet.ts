@@ -7,4 +7,5 @@ export type TTweet = {
     }
     content: string
     retweet: TTweet | null
+    createdAt: string
 }
