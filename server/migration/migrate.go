@@ -112,9 +112,11 @@ func Migrate(db *sqlx.DB) error {
 
 var tables = []string{
 	"users",
+	"user_profiles",
 	"tweets",
+	"tweet_images",
 	"follows",
-	"goods",
+	"likes",
 	"todos",
 }
 
