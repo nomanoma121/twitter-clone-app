@@ -4,11 +4,11 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+// users
 func Migrate(db *sqlx.DB) error {
 	_, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS users (
 			id INT PRIMARY KEY AUTO_INCREMENT,
-			name VARCHAR(255) NOT NULL,
 			email VARCHAR(255) NOT NULL UNIQUE,
 			password_hash VARCHAR(255) NOT NULL,
 			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -19,12 +19,21 @@ func Migrate(db *sqlx.DB) error {
 		return err
 	}
 
+	// user_profilesテーブルを作成
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS user_profiles (
+			id INT PRIMARY KEY A
+
+
+
+
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS tweets (
 			id INT PRIMARY KEY AUTO_INCREMENT,
 			user_id INT NOT NULL,
 			content TEXT NOT NULL,
 			retweet_id INT,
+			reply_id INT,
 			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 		);
@@ -48,7 +57,7 @@ func Migrate(db *sqlx.DB) error {
 	}
 
 	_, err = db.Exec(`
-		CREATE TABLE IF NOT EXISTS goods (
+		CREATE TABLE IF NOT EXISTS likes (
 			id INT PRIMARY KEY AUTO_INCREMENT,
 			user_id INT NOT NULL,
 			tweet_id INT NOT NULL,
