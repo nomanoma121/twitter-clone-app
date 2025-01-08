@@ -24,114 +24,149 @@ func NewTweetHandler(db *sqlx.DB) *TweetHandler {
 
 func (h *TweetHandler) Register(g *echo.Group) {
 	g.GET("/tweets", h.GetTweets)
-	g.GET("/tweets/all", h.GetTweetsAll)
+	g.GET("/tweets/all", h.GetAllTweets)
 	g.POST("/tweet", h.CreateTweet)
 	g.POST("/retweet", h.Retweet)
 }
 
-type GetTweetsAllResponseUser struct {
+type GetAllTweetsResponseUser struct {
 	ID    int    `json:"id"`
 	DisplayID string `json:"display_id"`
 	Name  string `json:"name"`
-	CreatedAt time.Time `json:"created_at"`
 }
 
-type GetTweetsAllResponseRetweet struct {
+type GetAllTweetsResponseRetweet struct {
 	ID      int                      `json:"id"`
-	User    GetTweetsAllResponseUser `json:"user"`
+	User    GetAllTweetsResponseUser `json:"user"`
 	Content string                   `json:"content"`
+	CreatedAt time.Time               `json:"created_at"`
 }
 
-type GetTweetsAllResponse struct {
+type GetAllTweetsResponseReply struct {
+	ID      int                      `json:"id"`
+	User    GetAllTweetsResponseUser `json:"user"`
+	Content string                   `json:"content"`
+	CreatedAt time.Time               `json:"created_at"`
+}
+
+type GetAllTweetsResponse struct {
 	ID        int                          `json:"id"`
-	User      GetTweetsAllResponseUser     `json:"user"`
+	User      GetAllTweetsResponseUser     `json:"user"`
 	Content   string                       `json:"content"`
-	Retweet   *GetTweetsAllResponseRetweet `json:"retweet"`
+	Retweet   *GetAllTweetsResponseRetweet `json:"retweet"`
+	Reply     *GetAllTweetsResponseReply   `json:"reply"`
 	CreatedAt time.Time                    `json:"created_at"`
 }
 
-func (h *TweetHandler) GetTweetsAll(c echo.Context) error {
+// Retweet or Replyがある場合はそれを取得し、Tweetに加える関数
+func getRetweetOrReply(actions *[]model.Tweet, tweets *[]model.Tweet) {
+	// 参照先のTweetのIDを格納するスライス
+	var actionsIDs []int
+	for _, tweet := range tweets {
+		// RetweetとReplyを同時に行うことはない
+		if tweet.RetweetID != nil {
+			actionsIDs = append(actionsIDs, *tweet.RetweetID)
+		} else if tweet.ReplyID != nil {
+			actionsIDs = append(actionsIDs, *tweet.ReplyID)
+		}
+	}
+	if len(actionsIDs) > 0 {
+		// retweetかreplyする参照先のTweetをしたUser情報を取得
+		query, args, err := sqlx.In(`
+			SELECT tweets.*, users.id as "user.id", users.name as "user.name", users.display_id as "user.display_id"
+			FROM tweets
+			JOIN users ON tweets.user_id = users.id
+			WHERE tweets.id IN (?)
+		`, actionsIDs)
+		if err != nil {
+			log.Println(err)
+		}
+
+	err = h.db.Select(actions, query, args...)
+	if err != nil {
+		log.Println(err)
+	}
+	// retweetかreplyが参照するTweetをretweetかreplyに加える
+	var actionsMap = map[int]model.Tweet{}
+	for _, action := range *actions {
+		actionsMap[action.ID] = action
+	}
+	// retweetかreplyが参照するTweetをretweetかreplyに加える
+	for i, tweet := range *tweets {
+		if tweet.RetweetID != nil {
+			action, ok := actionsMap[*tweet.RetweetID]
+			if !ok {
+				return
+			}
+			(*tweets)[i].Retweet = &action
+		} else if tweet.ReplyID != nil {
+			action, ok := actionsMap[*tweet.ReplyID]
+			if !ok {
+				return
+			}
+			(*tweets)[i].Reply = &action
+		}
+	}
+}
+
+func (h *TweetHandler) GetAllTweets(c echo.Context) error {
 	var tweets []model.Tweet
 	// データベースからすべてのツイートを取得
 	err := h.db.Select(&tweets, `
-		SELECT tweets.*, users.id as "user.id", users.name as "user.name", users.email as "user.email"
+		SELECT tweets.*, users.id as "user.id", users.name as "user.name", users.display_id as "user.display_id"
 		FROM tweets
 		JOIN users ON tweets.user_id = users.id
 	`)
 	if err != nil {
 		log.Println(err)
 		if errors.Is(err, sql.ErrNoRows) {
-			return c.JSON(200, []GetTweetsAllResponse{})
+			return c.JSON(200, []GetAllTweetsResponse{})
 		}
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 	var retweets []model.Tweet
-	var retweetIDs []int
-	for _, tweet := range tweets {
-		if tweet.RetweetID != nil {
-			retweetIDs = append(retweetIDs, *tweet.RetweetID)
-		}
-	}
-	if len(retweetIDs) > 0 {
-		query, args, err := sqlx.In(`
-			SELECT tweets.*, users.id as "user.id", users.name as "user.name", users.email as "user.email"
-			FROM tweets
-			JOIN users ON tweets.user_id = users.id
-			WHERE tweets.id IN (?)
-		`, retweetIDs)
-		fmt.Printf("query: %v\n", query)
-		fmt.Printf("args: %v\n", args)
-		if err != nil {
-			log.Println(err)
-			return c.JSON(500, map[string]string{"message": "Internal Server Error"})
-		}
-		err = h.db.Select(&retweets, query, args...)
-		if err != nil {
-			log.Println(err)
-			return c.JSON(500, map[string]string{"message": "Internal Server Error"})
-		}
-	}
-	var retweetMap = map[int]model.Tweet{}
-	for _, retweet := range retweets {
-		retweetMap[retweet.ID] = retweet
-	}
+	var replies []model.Tweet
+	// RetweetとReplyを取得
+	getRetweetOrReply(&retweets, &tweets)
+	getRetweetOrReply(&replies, &tweets)
+
+	res := make([]GetAllTweetsResponse, len(tweets))
 	for i, tweet := range tweets {
-		if tweet.RetweetID != nil {
-			retweet, ok := retweetMap[*tweet.RetweetID]
-			if !ok {
-				return c.JSON(500, map[string]string{"message": "Internal Server Error"})
-			}
-			tweets[i].Retweet = &retweet
-		}
-	}
-
-	fmt.Printf("retweets: %#v\n", retweets)
-
-	for _, tweet := range tweets {
-		fmt.Printf("tweet: %#v\n", tweet)
-	}
-	fmt.Printf("tweets len: %#v\n", len(tweets))
-
-	res := make([]GetTweetsAllResponse, len(tweets))
-	for i, tweet := range tweets {
-		retweet := (*GetTweetsAllResponseRetweet)(nil)
+		retweet := (*GetAllTweetsResponseRetweet)(nil)
 		if tweet.Retweet != nil {
-			retweet = &GetTweetsAllResponseRetweet{
+			retweet = &GetAllTweetsResponseRetweet{
 				ID:      tweet.Retweet.ID,
-				User:    GetTweetsAllResponseUser{ID: tweet.Retweet.User.ID, Name: tweet.Retweet.User.Name, Email: tweet.Retweet.User.Email},
+				User:    GetAllTweetsResponseUser{ID: tweet.Retweet.User.ID, Name: tweet.Retweet.User.Name, DisplayID: tweet.Retweet.User.DisplayID},
 				Content: tweet.Retweet.Content,
+				CreatedAt: tweet.Retweet.CreatedAt,
 			}
 		}
-		res[i] = GetTweetsAllResponse{
-			ID:      tweet.ID,
-			User:    GetTweetsAllResponseUser{ID: tweet.User.ID, Name: tweet.User.Name, Email: tweet.User.Email},
+		reply := (*GetAllTweetsResponseReply)(nil)
+		if tweet.Reply != nil {
+			reply = &GetAllTweetsResponseReply{
+				ID:      tweet.Reply.ID,
+				User: 	GetAllTweetsResponseUser{ID: tweet.Reply.User.ID, Name: tweet.Reply.User.Name, DisplayID: tweet.Reply.User.DisplayID},
+				Content: tweet.Reply.Content,
+				CreatedAt: tweet.Reply.CreatedAt,
+			}
+		}
+		res[i] = GetAllTweetsResponse{
+			ID: tweet.ID,
+			User: GetAllTweetsResponseUser{
+				ID:    tweet.User.ID,
+				Name:  tweet.User.Name,
+				DisplayID: tweet.User.DisplayID,
+			},
 			Content: tweet.Content,
 			Retweet: retweet,
+			Reply: reply,
+			CreatedAt: tweet.CreatedAt,
 		}
 	}
 
 	return c.JSON(200, res)
 }
+
 
 type GetTweetsResponseUser struct {
 	ID    int    `json:"id"`
