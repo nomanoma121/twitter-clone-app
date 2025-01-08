@@ -22,10 +22,20 @@ func Migrate(db *sqlx.DB) error {
 	// user_profilesテーブルを作成
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS user_profiles (
-			id INT PRIMARY KEY A
-
-
-
+			id INT PRIMARY KEY AUTO_INCREMENT,
+			user_id INT NOT NULL UNIQUE,
+			name VARCHAR(255) NOT NULL,
+			display_id VARCHAR(255) NOT NULL UNIQUE,
+			icon_url VARCHAR(255),
+			header_url VARCHAR(255),
+			profile TEXT,
+			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+		);
+	`)
+	if err != nil {
+		return err
+	}
 
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS tweets (
@@ -34,6 +44,20 @@ func Migrate(db *sqlx.DB) error {
 			content TEXT NOT NULL,
 			retweet_id INT,
 			reply_id INT,
+			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+		);
+	`)
+	if err != nil {
+		return err
+	}
+
+	// tweet_imagesテーブルを作成
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS tweet_images (
+			id INT PRIMARY KEY AUTO_INCREMENT,
+			tweet_id INT NOT NULL,
+			url VARCHAR(255) NOT NULL,
 			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 		);
