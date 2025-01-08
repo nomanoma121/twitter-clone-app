@@ -201,8 +201,8 @@ func (h *TweetHandler) handleError(c echo.Context, err error) error {
 
 type GetTweetsResponseUser struct {
 	ID    int    `json:"id"`
+	DisplayID string `json:"display_id"`
 	Name  string `json:"name"`
-	Email string `json:"email"`
 }
 
 type GetTweetsResponseRetweet struct {
@@ -223,7 +223,7 @@ func (h *TweetHandler) GetTweets(c echo.Context) error {
 
 	var tweets []model.Tweet
 	err := h.db.Select(&tweets, `
-		SELECT tweets.*, user_profile.user_id as "user.id", user_profile.name as "user.name", user_profile.email as "user.email"
+		SELECT tweets.*, user_profile.user_id as "user.id", user_profile.name as "user.name", user_profile.display_id as "user.display_id"
 		FROM tweets
 		JOIN user_profile ON tweets.user_id = user_profile.user_id
 		WHERE tweets.user_id = ?
@@ -245,7 +245,7 @@ func (h *TweetHandler) GetTweets(c echo.Context) error {
 	}
 	if len(retweetIDs) > 0 {
 		query, args, err := sqlx.In(`
-			SELECT tweets.*, user_profile.user_id as "user.id", user_profile.name as "user.name", user_profile.email as "user.email"
+			SELECT tweets.*, user_profile.user_id as "user.id", user_profile.name as "user.name", user_profile.display_id as "user.display_id"
 			FROM tweets
 			JOIN user_profile ON tweets.user_id = user_profile.user_id
 			WHERE tweets.id IN (?)
@@ -288,16 +288,20 @@ func (h *TweetHandler) GetTweets(c echo.Context) error {
 		if tweet.Retweet != nil {
 			retweet = &GetTweetsResponseRetweet{
 				ID:      tweet.Retweet.ID,
-				User:    GetTweetsResponseUser{ID: tweet.Retweet.User.ID, Name: tweet.Retweet.User.Name, Email: tweet.Retweet.User.Email},
+				User: GetTweetsResponseUser{
+					ID:    tweet.Retweet.User.ID,
+					Name:  tweet.Retweet.User.Name,
+					DisplayID: tweet.Retweet.User.DisplayID,
+				},
 				Content: tweet.Retweet.Content,
 			}
 		}
 		res[i] = GetTweetsResponse{
-			ID: tweet.ID,
+			ID:      tweet.ID,
 			User: GetTweetsResponseUser{
 				ID:    tweet.User.ID,
 				Name:  tweet.User.Name,
-				Email: tweet.User.Email,
+				DisplayID: tweet.User.DisplayID,
 			},
 			Content: tweet.Content,
 			Retweet: retweet,
