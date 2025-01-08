@@ -63,11 +63,11 @@ type GetFollowersResponse struct {
 func (h *UserHandler) GetFollowers(c echo.Context) error {
 	userID := c.Get("user_id").(int)
 
-	var followers []model.User
+	var followers []model.UserProfile
 	err := h.db.Select(&followers, `
-		SELECT users.*
-		FROM users
-		JOIN follows ON users.id = follows.follower_id
+		SELECT user_profiles.user_id AS id, user_profiles.name, user_profiles.display_id
+		FROM user_profiles
+		JOIN follows ON user_profiles.user_id = follows.follower_id
 		WHERE follows.followee_id = ?
 	`, userID)
 
@@ -93,18 +93,18 @@ func (h *UserHandler) GetFollowers(c echo.Context) error {
 
 type GetFolloweesResponse struct {
 	ID    int    `json:"id"`
+	DisplayID string `json:"display_id"`
 	Name  string `json:"name"`
-	Email string `json:"email"`
 }
 
 func (h *UserHandler) GetFollowees(c echo.Context) error {
 	userID := c.Get("user_id").(int)
 
-	var followees []model.User
+	var followees []model.UserProfile
 	err := h.db.Select(&followees, `
-		SELECT users.*
-		FROM users
-		JOIN follows ON users.id = follows.followee_id
+		SELECT user_profiles.user_id AS id, user_profiles.name, user_profiles.display_id
+		FROM user_profiles
+		JOIN follows ON user_profiles.user_id = follows.followee_id
 		WHERE follows.follower_id = ?
 	`, userID)
 
@@ -121,7 +121,7 @@ func (h *UserHandler) GetFollowees(c echo.Context) error {
 		res[i] = GetFolloweesResponse{
 			ID:    followee.ID,
 			Name:  followee.Name,
-			Email: followee.Email,
+			DisplayID: followee.DisplayID,
 		}
 	}
 
