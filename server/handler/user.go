@@ -57,7 +57,7 @@ func (h *UserHandler) Follow(c echo.Context) error {
 type GetFollowersResponse struct {
 	ID    int    `json:"id"`
 	Name  string `json:"name"`
-	Email string `json:"email"`
+	DisplayID string `json:"display_id"`
 }
 
 func (h *UserHandler) GetFollowers(c echo.Context) error {
@@ -84,7 +84,7 @@ func (h *UserHandler) GetFollowers(c echo.Context) error {
 		res[i] = GetFollowersResponse{
 			ID:    follower.ID,
 			Name:  follower.Name,
-			Email: follower.Email,
+			DisplayID: follower.DisplayID,
 		}
 	}
 

@@ -3,6 +3,7 @@ package handler
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"server/model"
 	"time"
@@ -71,10 +72,11 @@ func (h *TweetHandler) GetAllTweets(c echo.Context) error {
 
 func (h *TweetHandler) fetchTweets() ([]model.Tweet, error) {
 	var tweets []model.Tweet
+	// user_profileテーブルをJoinして取得
 	err := h.db.Select(&tweets, `
-		SELECT tweets.*, users.id as "user.id", users.name as "user.name", users.display_id as "user.display_id"
+		SELECT tweets.*, user_profile.user_id as "user.id", user_profile.display_id as "user.display_id", user_profile.name as "user.name"
 		FROM tweets
-		JOIN users ON tweets.user_id = users.id
+		JOIN user_profile ON tweets.user_id = user_profile.user_id
 	`)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
@@ -117,9 +119,9 @@ func (h *TweetHandler) fetchTweetsByIDs(ids []int) ([]model.Tweet, error) {
 	}
 
 	query, args, err := sqlx.In(`
-		SELECT tweets.*, users.id as "user.id", users.name as "user.name", users.display_id as "user.display_id"
+		SELECT tweets.*, user_profile.user_id as "user.id", user_profile.display_id as "user.display_id", user_profile.name as "user.name"
 		FROM tweets
-		JOIN users ON tweets.user_id = users.id
+		JOIN user_profile ON tweets.user_id = user_profile.user_id
 		WHERE tweets.id IN (?)
 	`, ids)
 	if err != nil {
@@ -167,9 +169,9 @@ func (h *TweetHandler) buildResponse(tweets []model.Tweet) []GetAllTweetsRespons
 				Name:      tweet.User.Name,
 				DisplayID: tweet.User.DisplayID,
 			},
-			Content: tweet.Content,
-			Retweet: h.buildRetweetResponse(tweet.Retweet),
-			Reply:   h.buildRetweetResponse(tweet.Reply),
+			Content:   tweet.Content,
+			Retweet:   h.buildRetweetResponse(tweet.Retweet),
+			Reply:     h.buildRetweetResponse(tweet.Reply),
 			CreatedAt: tweet.CreatedAt,
 		}
 	}
@@ -220,12 +222,10 @@ func (h *TweetHandler) GetTweets(c echo.Context) error {
 	userID := c.Get("user_id").(int)
 
 	var tweets []model.Tweet
-	// err := h.db.Select(&tweets, "SELECT * FROM tweet WHERE user_id = ?", userID)
-	// 自分のツイートと一緒にユーザーをJoinして取得
 	err := h.db.Select(&tweets, `
-		SELECT tweets.*, users.id as "user.id", users.name as "user.name", users.email as "user.email"
+		SELECT tweets.*, user_profile.user_id as "user.id", user_profile.name as "user.name", user_profile.email as "user.email"
 		FROM tweets
-		JOIN users ON tweets.user_id = users.id
+		JOIN user_profile ON tweets.user_id = user_profile.user_id
 		WHERE tweets.user_id = ?
 	`, userID)
 
@@ -245,13 +245,12 @@ func (h *TweetHandler) GetTweets(c echo.Context) error {
 	}
 	if len(retweetIDs) > 0 {
 		query, args, err := sqlx.In(`
-			SELECT tweets.*, users.id as "user.id", users.name as "user.name", users.email as "user.email"
+			SELECT tweets.*, user_profile.user_id as "user.id", user_profile.name as "user.name", user_profile.email as "user.email"
 			FROM tweets
-			JOIN users ON tweets.user_id = users.id
+			JOIN user_profile ON tweets.user_id = user_profile.user_id
 			WHERE tweets.id IN (?)
 		`, retweetIDs)
-		fmt.Printf("query: %v\n", query)
-		fmt.Printf("args: %v\n", args)
+
 		if err != nil {
 			log.Println(err)
 			return c.JSON(500, map[string]string{"message": "Internal Server Error"})
@@ -377,59 +376,4 @@ func (h *TweetHandler) Retweet(c echo.Context) error {
 	}
 
 	return c.NoContent(201)
-}
-
-// Retweet or Replyがある場合はそれを取得し、Tweetに加える関数
-func getRetweet(retweets *[]model.Tweet, tweets *[]model.Tweet) {
-	var retweetsIDs []int
-	for _, tweet := range *tweets {
-		if tweet.RetweetID != nil {
-			retweetsIDs = append(retweetsIDs, *tweet.RetweetID)
-		}
-	}
-	if len(retweetsIDs) > 0 {
-		// getTweetsWithUserでRetweetを取得
-
-	var retweetMap = map[int]model.Tweet{}
-	for _, retweet := range *retweets {
-		retweetMap[retweet.ID] = retweet
-	}
-	for i, tweet := range *tweets {
-		if tweet.RetweetID != nil {
-			retweet, ok := retweetMap[*tweet.RetweetID]
-			if !ok {
-				return c.JSON(500, map[string]string{"message": "Internal Server Error"})
-			}
-			(*tweets)[i].Retweet = &retweet
-		}
-	}
-}
-
-// func getReply(r *model.Tweet, tweets *[]model.Tweet) {
-// 	var replyIDs []int
-// 	for _, tweet := range *tweets {
-// 		if tweet.ReplyID != nil {
-// 			replyIDs = append(replyIDs, *tweet.ReplyID)
-// 		}
-// 	}
-
-// }
-
-func (h *TweetHandler) getTweetsWithUser(tweetIDs []int, tweets *[]model.Tweet) error {
-	query, args, err := sqlx.In(`
-		SELECT tweets.*, users.id as "user.id", users.name as "user.name", users.email as "user.email"
-		FROM tweets
-		JOIN users ON tweets.user_id = users.id
-		WHERE tweets.id IN (?)
-	`, tweetIDs)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-	err = h.db.Select(&tweets, query, args...)
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-	return nil
 }
