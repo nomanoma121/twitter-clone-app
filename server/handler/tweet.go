@@ -31,8 +31,9 @@ func (h *TweetHandler) Register(g *echo.Group) {
 
 type GetTweetsAllResponseUser struct {
 	ID    int    `json:"id"`
+	DisplayID string `json:"display_id"`
 	Name  string `json:"name"`
-	Email string `json:"email"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type GetTweetsAllResponseRetweet struct {
