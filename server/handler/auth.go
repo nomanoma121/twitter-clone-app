@@ -34,6 +34,7 @@ func (h *AuthHandler) Register(g *echo.Group, authMiddleware *middleware.AuthMid
 
 type SignupRequest struct {
 	Name     string `json:"name" validate:"required"`
+	DisplayID string `json:"display_id" validate:"required"`
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=8"`
 }
@@ -41,7 +42,7 @@ type SignupRequest struct {
 type TokenUserResponse struct {
 	ID    int    `json:"id"`
 	Name  string `json:"name"`
-	Email string `json:"email"`
+	DisplayID string `json:"display_id"`
 }
 
 type TokenResponse struct {
@@ -64,7 +65,7 @@ func (h *AuthHandler) Signup(c echo.Context) error {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
-	res, err := h.db.Exec("INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)", req.Name, req.Email, string(hash))
+	res := h.db.MustExec("INSERT INTO users (email, password_hash) VALUES (?, ?)", req.Email, hash)
 	if err != nil {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
@@ -74,18 +75,20 @@ func (h *AuthHandler) Signup(c echo.Context) error {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
+	_, err = h.db.Exec("INSERT INTO user_profiles (user_id, name, display_id) VALUES (?, ?, ?)", id, req.Name, req.DisplayID)
+
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{"user_id": id}).SignedString([]byte(h.secret))
 	if err != nil {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
-	var user model.User
-	err = h.db.Get(&user, "SELECT * FROM users WHERE id = ?", id)
+	var user model.UserProfile
+	err = h.db.Get(&user, "SELECT * FROM user_profiles WHERE user_id = ?", id)
 	if err != nil {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
-	return c.JSON(200, TokenResponse{Token: token, User: TokenUserResponse{ID: user.ID, Name: user.Name, Email: user.Email}})
+	return c.JSON(200, TokenResponse{Token: token, User: TokenUserResponse{ID: int(id), Name: req.Name, DisplayID: req.DisplayID}})
 }
 
 type LoginRequest struct {

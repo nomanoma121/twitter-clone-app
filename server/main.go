@@ -104,8 +104,8 @@ func main() {
 	tweetHandler.Register(apiGroup)
 	userHandler := handler.NewUserHandler(db)
 	userHandler.Register(apiGroup)
-	goodHandler := handler.NewGoodHandler(db)
-	goodHandler.Register(apiGroup)
+	likeHandler := handler.NewLikeHandler(db)
+	likeHandler.Register(apiGroup)
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", APP_PORT)))
 }
