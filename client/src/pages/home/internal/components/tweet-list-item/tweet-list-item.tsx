@@ -2,7 +2,7 @@ import { TTweet } from "../../../../../types/tweet";
 
 interface TweetListItemProps {
   tweet: TTweet;
-  refetch: () => void | null;
+  refetch: () => void | null; // エラーしないようにnullを追加
 }
 
 export const TweetListItem = ({ tweet, refetch }: TweetListItemProps) => {

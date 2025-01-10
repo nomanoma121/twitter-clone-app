@@ -139,40 +139,13 @@ func (h *TweetHandler) GetTimelineTweets(c echo.Context) error {
 	}
 
 	// いいね、リツイート、リプライの数を取得
-	var tweetIDs []int
-	for _, tweet := range tweets {
-		tweetIDs = append(tweetIDs, tweet.ID)
-	}
-
-	var interactions []model.Interaction
-	likeCounts := map[int]int{}
-	retweetCounts := map[int]int{}
-	replyCounts := map[int]int{}
-	err = h.db.Select(&interactions, `
-		SELECT tweet_id, COUNT(*) as count
-		FROM likes
-		WHERE tweet_id IN (?)
-		GROUP BY tweet_id
-	`, tweetIDs)
-	if err != nil {
-		return h.handleError(c, err)
-	}
-	for _, interaction := range interactions {
-		likeCounts[interaction.TweetID] = interaction.Count
-	}
-
+	// それぞれ初期化
+	likeCounts := map[int]int
+	retweetCounts := map[int]int
+	replyCounts := map[int]int
 	
-	if err != nil {
-		return h.handleError(c, err)
-	}
-	for _, interaction := range interactions {
-		retweetCounts[interaction.TweetID] = interaction.Count
-	}
-
-	err = h.db.Select(&interactions, `
-		SELECT tweet_id, COUNT(*) as count
-		FROM r
 	
+
 	// レスポンス用の構造体に変換
 	res := make([]GetTimelineTweetsResponse, len(tweets))
 	for i, tweet := range tweets {
