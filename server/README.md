@@ -23,7 +23,6 @@
       "icon_image": "...",
     },
     "content": "これはリツイート",
-    "tweet_image": "..."
     "retweeted_tweet": {
       "id": 101,
       "user": {
@@ -33,7 +32,6 @@
         "icon_image": "..."
       },
       "content": "これはリツイートされたツイート",
-      "tweet_image": "..."
       "interactions": {
         "retweet": 3,
         "reply": 6,
@@ -74,7 +72,6 @@
 ```json
 {
   "content": "ツイート",
-  "tweet_image": "...",
 }
 ```
 
@@ -85,7 +82,6 @@
 ```json
 {
   "content": "リツイート",
-  "tweet_image": "...",
   "retweet_id": 3,
 }
 ```
@@ -96,7 +92,6 @@
 ```json
 {
   "content": "リプライ",
-  "tweet_image": "...",
   "reply_id": 4,
 }
 ```
