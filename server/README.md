@@ -20,30 +20,31 @@
       "id": 2,
       "display_id": "hoge",
       "name": "hoge",
-      "icon_image": "...",
+      "icon_url": "...",
     },
     "content": "これはリツイート",
-    "retweeted_tweet": {
+    "retweet": {
       "id": 101,
       "user": {
         "id": 5,
         "display_id": "fuga",
         "name": "fuga",
-        "icon_image": "..."
+        "icon_url": "..."
       },
       "content": "これはリツイートされたツイート",
       "interactions": {
-        "retweet": 3,
-        "reply": 6,
-        "like": 7,
+        "retweet_count": 3,
+        "reply_count": 6,
+        "like_count": 7,
       }
+      "created_at": "2022-11-05",
     },
     "interactions": {
-      "retweet": 5,
-      "reply": 4,
-      "like": 5,
+      "retweet_count": 5,
+      "reply_count": 4,
+      "like_count": 5,
     }
-    "type": "retweet"
+    "created_at": "2024-12-11",
   },
   {
     ...
