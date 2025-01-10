@@ -10,7 +10,7 @@
 ## API設計
 
 ### タイムラインのツイートを取得
-`GET api/tweets?type=timeline&cursor...=&limit=...`
+`GET api/tweets/timeline?cursor...=&limit=...`
 #### レスポンス例
 ```json
 {
@@ -52,7 +52,7 @@
 ```
 
 ### フォローしている人だけのTweetを取得
-`GET api/tweets?type=follows&cursor=...&limit=...`
+`GET api/tweets/follow?cursor=...&limit=...`
 
 レスポンスはタイムラインのツイート取得と同じ
 
@@ -66,7 +66,7 @@
 
 
 ### ツイートする
-`POST api/tweets`
+`POST api/tweet`
 
 リクエスト例
 ```json
@@ -76,7 +76,7 @@
 ```
 
 ### リツイートする
-`POST api/tweets/:id/retweet`
+`POST api/tweet/:id/retweet`
 
 リクエスト例
 ```json
@@ -87,7 +87,7 @@
 ```
 
 ### リプライする
-`POST api/tweets/:id/reply`
+`POST api/tweet/:id/reply`
 
 ```json
 {
