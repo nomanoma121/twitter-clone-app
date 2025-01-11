@@ -22,6 +22,8 @@ type AuthHandler struct {
 	secret    string
 }
 
+
+// TODO: 以前のコミット状態に戻す
 func NewAuthHandler(db *sqlx.DB, secret string) *AuthHandler {
 	return &AuthHandler{db: db, validator: validator.New(), secret: secret}
 }
@@ -65,6 +67,7 @@ func (h *AuthHandler) Signup(c echo.Context) error {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
+	// usersテーブルに挿入
 	res := h.db.MustExec("INSERT INTO users (email, password_hash) VALUES (?, ?)", req.Email, hash)
 	if err != nil {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
@@ -75,6 +78,7 @@ func (h *AuthHandler) Signup(c echo.Context) error {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
+	// user_profilesテーブルに挿入
 	_, err = h.db.Exec("INSERT INTO user_profiles (user_id, name, display_id) VALUES (?, ?, ?)", id, req.Name, req.DisplayID)
 
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{"user_id": id}).SignedString([]byte(h.secret))
@@ -122,23 +126,23 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
-	return c.JSON(200, TokenResponse{Token: token, User: TokenUserResponse{ID: user.ID, Name: user.Name, Email: user.Email}})
+	return c.JSON(200, TokenResponse{Token: token, User: TokenUserResponse{ID: user.ID, Name: user.Email, DisplayID: ""}})
 }
 
 type MeResponse struct {
 	ID    int    `json:"id"`
 	Name  string `json:"name"`
-	Email string `json:"email"`
+	DisplayID string `json:"display_id"`
 }
 
 func (h *AuthHandler) Me(c echo.Context) error {
 	userID := c.Get("user_id").(int)
 
-	var user model.User
-	err := h.db.Get(&user, "SELECT * FROM users WHERE id = ?", userID)
+	var user model.UserProfile
+	err := h.db.Get(&user, "SELECT * FROM user_profiles WHERE user_id = ?", userID)
 	if err != nil {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
-	return c.JSON(200, MeResponse{ID: user.ID, Name: user.Name, Email: user.Email})
+	return c.JSON(200, MeResponse{ID: user.UserID, Name: user.Name, DisplayID: user.DisplayID})
 }

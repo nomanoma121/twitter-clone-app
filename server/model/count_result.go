@@ -1,6 +1,6 @@
 package model
 
-type LikeCount struct {
+type CountResult struct {
 	TweetID int `db:"tweet_id"`
 	Count   int `db:"count"`
 }

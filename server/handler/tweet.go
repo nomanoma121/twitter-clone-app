@@ -23,8 +23,7 @@ func NewTweetHandler(db *sqlx.DB) *TweetHandler {
 }
 
 func (h *TweetHandler) Register(g *echo.Group) {
-	g.GET("/tweets/all", h.GetAllTweets)
-	g.GET("/tweets/timeline", h.GetTweets)
+	g.GET("/tweets/timeline", h.GetTimelineTweets)
 	g.GET("/tweets/follow", h.GetTweets)
 	g.GET("/users/:display_id/tweets", h.GetTweets)
 	g.POST("/tweets/:tweet_id/retweet", h.Retweet)
@@ -67,6 +66,7 @@ type GetTimelineTweetsResponseRetweet struct {
 	ID        int                           `json:"id"`
 	User      GetTimelineTweetsResponseUser `json:"user"`
 	Content   string                        `json:"content"`
+	Interactions GetTimelineTweetsResponseInteractions `json:"interactions"`
 	CreatedAt time.Time                     `json:"created_at"`
 }
 
@@ -85,14 +85,15 @@ type GetTimelineTweetsResponse struct {
 	CreatedAt    time.Time                             `json:"created_at"`
 }
 
-// TODO: cursorを使ってページネーションする
+// TODO: cursor, limitを使ってページネーションする
+// HACK: コードが冗長なのでリファクタリングする
 func (h *TweetHandler) GetTimelineTweets(c echo.Context) error {
 	var tweets []model.Tweet
 	// TweetとUserをJOINして取得
 	err := h.db.Select(&tweets, `
-		SELECT tweets.*, user_profile.user_id as "user.id", user_profile.name as "user.name", user_profile.display_id as "user.display_id", user_profile.icon_url as "user.icon_url"
+		SELECT tweets.*, user_profiles.user_id as "user.id", user_profiles.name as "user.name", user_profiles.display_id as "user.display_id", user_profiles.icon_url as "user.icon_url"
 		FROM tweets
-		JOIN user_profile ON tweets.user_id = user_profile.user_id
+		JOIN user_profiles ON tweets.user_id = user_profiles.user_id
 	`)
 	if err != nil {
 		return h.handleError(c, err)
@@ -108,9 +109,9 @@ func (h *TweetHandler) GetTimelineTweets(c echo.Context) error {
 	// RetweetがあればRetweet対象のツイートを取得
 	if len(retweetIDs) > 0 {
 		query, args, err := sqlx.In(`
-			SELECT tweets.*, user_profile.user_id as "user.id", user_profile.name as "user.name", user_profile.display_id as "user.display_id"
+			SELECT tweets.*, user_profiles.user_id as "user.id", user_profiles.name as "user.name", user_profiles.display_id as "user.display_id"
 			FROM tweets
-			JOIN user_profile ON tweets.user_id = user_profile.user_id
+			JOIN user_profiles ON tweets.user_id = user_profiles.user_id
 			WHERE tweets.id IN (?)
 		`, retweetIDs)
 
@@ -139,21 +140,40 @@ func (h *TweetHandler) GetTimelineTweets(c echo.Context) error {
 	}
 
 	// いいね、リツイート、リプライの数を取得
-	// それぞれ初期化
-	likeCounts := map[int]int
-	retweetCounts := map[int]int
-	replyCounts := map[int]int
+	var likeCounts []model.CountResult
+
+	// いいね数を取得
+	err = h.db.Select(&likeCounts, `
+		SELECT tweet_id, COUNT(*) as count
+		FROM likes
+		GROUP BY tweet_id
+	`)
+	if err != nil {
+		return h.handleError(c, err)
+	}
+
+	// マップに変換
+	likeCountMap := map[int]int{}
+	for _, count := range likeCounts {
+		likeCountMap[count.TweetID] = count.Count
+	}
+
+	var retweetCountMap = map[int]int{}
+	var replyCountMap = map[int]int{}
 
 	for _, tweet := range tweets {
 		if tweet.RetweetID != nil {
-			retweetCounts[*tweet.RetweetID]++
+			retweetCountMap[*tweet.RetweetID]++
 		}
 		if tweet.ReplyID != nil {
-			replyCounts[*tweet.ReplyID]++
+			replyCountMap[*tweet.ReplyID]++
 		}
 	}
 
-	
+	log.Println(likeCountMap)
+	log.Println(retweetCountMap)
+	log.Println(replyCountMap)
+
 	// レスポンス用の構造体に変換
 	res := make([]GetTimelineTweetsResponse, len(tweets))
 	for i, tweet := range tweets {
@@ -168,6 +188,11 @@ func (h *TweetHandler) GetTimelineTweets(c echo.Context) error {
 					IconURL:   tweet.Retweet.User.IconURL,
 				},
 				Content:   tweet.Retweet.Content,
+				Interactions: GetTimelineTweetsResponseInteractions{
+					LikeCount:    likeCountMap[tweet.Retweet.ID],
+					RetweetCount: retweetCountMap[tweet.Retweet.ID],
+					ReplyCount:   replyCountMap[tweet.Retweet.ID],
+				},
 				CreatedAt: tweet.Retweet.CreatedAt,
 			}
 		}
@@ -181,9 +206,17 @@ func (h *TweetHandler) GetTimelineTweets(c echo.Context) error {
 			},
 			Content:   tweet.Content,
 			Retweet:   retweet,
+			Interactions: GetTimelineTweetsResponseInteractions{
+				LikeCount:    likeCountMap[tweet.ID],
+				RetweetCount: retweetCountMap[tweet.ID],
+				ReplyCount:   replyCountMap[tweet.ID],
+			},
 			CreatedAt: tweet.CreatedAt,
 		}
 	}
+
+	return c.JSON(200, res)
+}
 
 func (h *TweetHandler) handleError(c echo.Context, err error) error {
 	log.Println(err)
@@ -214,9 +247,9 @@ func (h *TweetHandler) GetTweets(c echo.Context) error {
 
 	var tweets []model.Tweet
 	err := h.db.Select(&tweets, `
-		SELECT tweets.*, user_profile.user_id as "user.id", user_profile.name as "user.name", user_profile.display_id as "user.display_id"
+		SELECT tweets.*, user_profiles.user_id as "user.id", user_profiles.name as "user.name", user_profile.display_id as "user.display_id"
 		FROM tweets
-		JOIN user_profile ON tweets.user_id = user_profile.user_id
+		JOIN user_profiles ON tweets.user_id = user_profiles.user_id
 		WHERE tweets.user_id = ?
 	`, userID)
 
@@ -238,9 +271,9 @@ func (h *TweetHandler) GetTweets(c echo.Context) error {
 	}
 	if len(retweetIDs) > 0 {
 		query, args, err := sqlx.In(`
-			SELECT tweets.*, user_profile.user_id as "user.id", user_profile.name as "user.name", user_profile.display_id as "user.display_id"
+			SELECT tweets.*, user_profiles.user_id as "user.id", user_profiles.name as "user.name", user_profile.display_id as "user.display_id"
 			FROM tweets
-			JOIN user_profile ON tweets.user_id = user_profile.user_id
+			JOIN user_profiles ON tweets.user_id = user_profiles.user_id
 			WHERE tweets.id IN (?)
 		`, retweetIDs)
 
