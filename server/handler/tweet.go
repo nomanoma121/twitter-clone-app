@@ -143,9 +143,17 @@ func (h *TweetHandler) GetTimelineTweets(c echo.Context) error {
 	likeCounts := map[int]int
 	retweetCounts := map[int]int
 	replyCounts := map[int]int
-	
-	
 
+	for _, tweet := range tweets {
+		if tweet.RetweetID != nil {
+			retweetCounts[*tweet.RetweetID]++
+		}
+		if tweet.ReplyID != nil {
+			replyCounts[*tweet.ReplyID]++
+		}
+	}
+
+	
 	// レスポンス用の構造体に変換
 	res := make([]GetTimelineTweetsResponse, len(tweets))
 	for i, tweet := range tweets {
@@ -212,6 +220,8 @@ func (h *TweetHandler) GetTweets(c echo.Context) error {
 		WHERE tweets.user_id = ?
 	`, userID)
 
+
+
 	if err != nil {
 		log.Println(err)
 		if errors.Is(err, sql.ErrNoRows) {
@@ -257,13 +267,6 @@ func (h *TweetHandler) GetTweets(c echo.Context) error {
 			tweets[i].Retweet = &retweet
 		}
 	}
-
-	fmt.Printf("retweets: %#v\n", retweets)
-
-	for _, tweet := range tweets {
-		fmt.Printf("tweet: %#v\n", tweet)
-	}
-	fmt.Printf("tweets len: %#v\n", len(tweets))
 
 	res := make([]GetTweetsResponse, len(tweets))
 	for i, tweet := range tweets {
