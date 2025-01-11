@@ -12,11 +12,11 @@ export const TweetListItem = ({ tweet, refetch }: TweetListItemProps) => {
       <p>{tweet.retweet ? "リツイート" : ""}</p>
       <div className="TweetListItem__user">
         <p>{tweet.user.name}</p>
-        <p>@{tweet.user.email}</p>
+        <p>@{tweet.user.display_id}</p>
       </div>
       <div className="TweetListItem__content">
         <p>{tweet.content}</p>
-        <p className="TweetListItem__content__date">{tweet.createdAt}</p>
+        <p className="TweetListItem__content__date">{tweet.created_at}</p>
       </div>
     </div>
   );

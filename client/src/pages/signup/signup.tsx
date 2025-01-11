@@ -22,13 +22,15 @@ export const SignUp = () => {
       const name = formData.get("name");
       const email = formData.get("email");
       const password = formData.get("password");
+      const display_id = formData.get("display_id");
 
-      if (name === null || email === null || password === null) {
+      if (name === null || display_id === null || email === null || password === null) {
         return { message: "メールアドレスとパスワードを入力してください" };
       }
 
       if (
         typeof name !== "string" ||
+        typeof display_id !== "string" ||
         typeof email !== "string" ||
         typeof password !== "string"
       ) {
@@ -41,7 +43,7 @@ export const SignUp = () => {
 
       const res = await serverFetch("/auth/signup", {
         method: "POST",
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, display_id }),
         headers: {
           "Content-Type": "application/json",
         },
@@ -51,7 +53,7 @@ export const SignUp = () => {
         const data = await res.json();
         localStorage.setItem("token", data.token);
         setUser(data.user);
-        navigate("/todos");
+        navigate("/home");
         return { message: "" };
       }
 
@@ -75,6 +77,12 @@ export const SignUp = () => {
             <td>名前</td>
             <td>
               <Input type="text" name="name" required />
+            </td>
+          </tr>
+          <tr>
+            <td>ユーザーID</td>
+            <td>
+              <Input type="text" name="display_id" required />
             </td>
           </tr>
           <tr>

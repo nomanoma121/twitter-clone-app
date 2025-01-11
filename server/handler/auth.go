@@ -22,7 +22,6 @@ type AuthHandler struct {
 	secret    string
 }
 
-
 // TODO: 以前のコミット状態に戻す
 func NewAuthHandler(db *sqlx.DB, secret string) *AuthHandler {
 	return &AuthHandler{db: db, validator: validator.New(), secret: secret}
@@ -35,15 +34,15 @@ func (h *AuthHandler) Register(g *echo.Group, authMiddleware *middleware.AuthMid
 }
 
 type SignupRequest struct {
-	Name     string `json:"name" validate:"required"`
+	Name      string `json:"name" validate:"required"`
 	DisplayID string `json:"display_id" validate:"required"`
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=8"`
+	Email     string `json:"email" validate:"required,email"`
+	Password  string `json:"password" validate:"required,min=8"`
 }
 
 type TokenUserResponse struct {
-	ID    int    `json:"id"`
-	Name  string `json:"name"`
+	ID        int    `json:"id"`
+	Name      string `json:"name"`
 	DisplayID string `json:"display_id"`
 }
 
@@ -69,9 +68,6 @@ func (h *AuthHandler) Signup(c echo.Context) error {
 
 	// usersテーブルに挿入
 	res := h.db.MustExec("INSERT INTO users (email, password_hash) VALUES (?, ?)", req.Email, hash)
-	if err != nil {
-		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
-	}
 
 	id, err := res.LastInsertId()
 	if err != nil {
@@ -126,12 +122,18 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
-	return c.JSON(200, TokenResponse{Token: token, User: TokenUserResponse{ID: user.ID, Name: user.Email, DisplayID: ""}})
+	var userProfile model.UserProfile
+	err = h.db.Get(&userProfile, "SELECT * FROM user_profiles WHERE user_id = ?", user.ID)
+	if err != nil {
+		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+	}
+
+	return c.JSON(200, TokenResponse{Token: token, User: TokenUserResponse{ID: user.ID, Name: userProfile.Name, DisplayID: userProfile.DisplayID}})
 }
 
 type MeResponse struct {
-	ID    int    `json:"id"`
-	Name  string `json:"name"`
+	ID        int    `json:"id"`
+	Name      string `json:"name"`
 	DisplayID string `json:"display_id"`
 }
 

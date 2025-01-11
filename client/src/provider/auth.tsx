@@ -11,6 +11,7 @@ import { useNavigate } from "react-router";
 type User = {
   id: number;
   name: string;
+  display_id: string;
   email: string;
 };
 
