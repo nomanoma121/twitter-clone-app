@@ -195,6 +195,11 @@ func (h *TweetHandler) GetTimelineTweets(c echo.Context) error {
 	return c.JSON(200, res)
 }
 
+type GetFollowTweetsResponse = GetTimelineTweetsResponse
+type GetFollowTweetsResponseRetweet = GetTimelineTweetsResponseRetweet
+type GetFollowTweetsResponseInteractions = GetTimelineTweetsResponseInteractions
+type GetFollowTweetsResponseUser = GetTimelineTweetsResponseUser
+
 func (h *TweetHandler) GetFollowTweets(c echo.Context) error {
 	userID := c.Get("user_id").(int)
 
@@ -300,20 +305,20 @@ func (h *TweetHandler) GetFollowTweets(c echo.Context) error {
 	}
 
 	// レスポンスデータの作成
-	res := make([]GetTimelineTweetsResponse, len(tweets))
+	res := make([]GetFollowTweetsResponse, len(tweets))
 	for i, tweet := range tweets {
-		retweet := (*GetTimelineTweetsResponseRetweet)(nil)
+		retweet := (*GetFollowTweetsResponseRetweet)(nil)
 		if tweet.Retweet != nil {
-			retweet = &GetTimelineTweetsResponseRetweet{
+			retweet = &GetFollowTweetsResponseRetweet{
 				ID: tweet.Retweet.ID,
-				User: GetTimelineTweetsResponseUser{
+				User: GetFollowTweetsResponseUser{
 					ID:        tweet.Retweet.User.ID,
 					Name:      tweet.Retweet.User.Name,
 					DisplayID: tweet.Retweet.User.DisplayID,
 					IconURL:   tweet.Retweet.User.IconURL,
 				},
 				Content: tweet.Retweet.Content,
-				Interactions: GetTimelineTweetsResponseInteractions{
+				Interactions: GetFollowTweetsResponseInteractions{
 					LikeCount:    likeCountMap[tweet.Retweet.ID],
 					RetweetCount: retweetCountMap[tweet.Retweet.ID],
 					ReplyCount:   replyCountMap[tweet.Retweet.ID],
@@ -321,9 +326,9 @@ func (h *TweetHandler) GetFollowTweets(c echo.Context) error {
 				CreatedAt: tweet.Retweet.CreatedAt,
 			}
 		}
-		res[i] = GetTimelineTweetsResponse{
+		res[i] = GetFollowTweetsResponse{
 			ID: tweet.ID,
-			User: GetTimelineTweetsResponseUser{
+			User: GetFollowTweetsResponseUser{
 				ID:        tweet.User.ID,
 				Name:      tweet.User.Name,
 				DisplayID: tweet.User.DisplayID,
@@ -331,7 +336,7 @@ func (h *TweetHandler) GetFollowTweets(c echo.Context) error {
 			},
 			Content: tweet.Content,
 			Retweet: retweet,
-			Interactions: GetTimelineTweetsResponseInteractions{
+			Interactions: GetFollowTweetsResponseInteractions{
 				LikeCount:    likeCountMap[tweet.ID],
 				RetweetCount: retweetCountMap[tweet.ID],
 				ReplyCount:   replyCountMap[tweet.ID],
@@ -343,6 +348,7 @@ func (h *TweetHandler) GetFollowTweets(c echo.Context) error {
 	return c.JSON(200, res)
 }
 
+// TODO: ユーザーのツイートを取得する
 // func (h *TweetHandler) GetUserTweets(c echo.Context) error {
 
 // }
