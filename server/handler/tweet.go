@@ -3,7 +3,6 @@ package handler
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"log"
 	"server/model"
 	"time"
@@ -27,8 +26,8 @@ func (h *TweetHandler) Register(g *echo.Group) {
 	g.GET("/tweets/follow", h.GetFollowTweets)
 	// g.GET("/users/:display_id/tweets", h.GetUserTweets)
 	g.POST("/tweet", h.CreateTweet)
-	g.POST("/tweet/:tweet_id/retweet", h.CreateRetweet)
-	g.POST("/tweet/:tweet_id/reply", h.CreateRetweet)
+	g.POST("/tweet/:id/retweet", h.CreateRetweet)
+	g.POST("/tweet/:id/reply", h.CreateRetweet)
 }
 
 type GetTimelineTweetsResponseUser struct {
@@ -39,11 +38,11 @@ type GetTimelineTweetsResponseUser struct {
 }
 
 type GetTimelineTweetsResponseRetweet struct {
-	ID        int                           `json:"id"`
-	User      GetTimelineTweetsResponseUser `json:"user"`
-	Content   string                        `json:"content"`
+	ID           int                                   `json:"id"`
+	User         GetTimelineTweetsResponseUser         `json:"user"`
+	Content      string                                `json:"content"`
 	Interactions GetTimelineTweetsResponseInteractions `json:"interactions"`
-	CreatedAt time.Time                     `json:"created_at"`
+	CreatedAt    time.Time                             `json:"created_at"`
 }
 
 type GetTimelineTweetsResponseInteractions struct {
@@ -164,7 +163,7 @@ func (h *TweetHandler) GetTimelineTweets(c echo.Context) error {
 					DisplayID: tweet.Retweet.User.DisplayID,
 					IconURL:   tweet.Retweet.User.IconURL,
 				},
-				Content:   tweet.Retweet.Content,
+				Content: tweet.Retweet.Content,
 				Interactions: GetTimelineTweetsResponseInteractions{
 					LikeCount:    likeCountMap[tweet.Retweet.ID],
 					RetweetCount: retweetCountMap[tweet.Retweet.ID],
@@ -174,15 +173,15 @@ func (h *TweetHandler) GetTimelineTweets(c echo.Context) error {
 			}
 		}
 		res[i] = GetTimelineTweetsResponse{
-			ID:        tweet.ID,
+			ID: tweet.ID,
 			User: GetTimelineTweetsResponseUser{
 				ID:        tweet.User.ID,
 				Name:      tweet.User.Name,
 				DisplayID: tweet.User.DisplayID,
 				IconURL:   tweet.User.IconURL,
 			},
-			Content:   tweet.Content,
-			Retweet:   retweet,
+			Content: tweet.Content,
+			Retweet: retweet,
 			Interactions: GetTimelineTweetsResponseInteractions{
 				LikeCount:    likeCountMap[tweet.ID],
 				RetweetCount: retweetCountMap[tweet.ID],
@@ -365,11 +364,11 @@ func (h *TweetHandler) CreateTweet(c echo.Context) error {
 		return c.JSON(400, map[string]string{"message": "Bad Request"})
 	}
 
-	fmt.Printf("req: %#v\n", req)
-
 	if err := h.validator.Struct(req); err != nil {
 		return c.JSON(400, map[string]string{"message": "Bad Request"})
 	}
+
+	log.Printf("req: %#v\n", req.Content)
 
 	_, err := h.db.Exec("INSERT INTO tweets (user_id, content) VALUES (?, ?)", userID, req.Content)
 	if err != nil {
@@ -380,14 +379,14 @@ func (h *TweetHandler) CreateTweet(c echo.Context) error {
 }
 
 type RetweetRequest struct {
-	Content *string `json:"content"`
-	RetweetID int `json:"retweet_id" validate:"required"`
+	Content *string `json:"content"` // リツイートはcontentなくてもいい
 }
 
 func (h *TweetHandler) CreateRetweet(c echo.Context) error {
 	userID := c.Get("user_id").(int)
 
 	req := new(RetweetRequest)
+	retweetID := c.Param("id")
 	if err := c.Bind(req); err != nil {
 		return c.JSON(400, map[string]string{"message": "Bad Request"})
 	}
@@ -396,8 +395,10 @@ func (h *TweetHandler) CreateRetweet(c echo.Context) error {
 		return c.JSON(400, map[string]string{"message": "Bad Request"})
 	}
 
+	log.Printf("req: %#v\n", *req.Content)
+
 	var tweet model.Tweet
-	err := h.db.Get(&tweet, "SELECT * FROM tweets WHERE id = ?", req.RetweetID)
+	err := h.db.Get(&tweet, "SELECT * FROM tweets WHERE id = ?", retweetID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return c.JSON(404, map[string]string{"message": "Not Found"})
@@ -410,12 +411,12 @@ func (h *TweetHandler) CreateRetweet(c echo.Context) error {
 	}
 
 	if req.Content == nil {
-		_, err = h.db.Exec("INSERT INTO tweets (user_id, retweet_id) VALUES (?, ?)", userID, req.RetweetID)
+		_, err = h.db.Exec("INSERT INTO tweets (user_id, retweet_id) VALUES (?, ?)", userID, retweetID)
 		if err != nil {
 			return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 		}
 	} else {
-		_, err = h.db.Exec("INSERT INTO tweets (user_id, retweet_id, content) VALUES (?, ?, ?)", userID, req.RetweetID, *req.Content)
+		_, err = h.db.Exec("INSERT INTO tweets (user_id, retweet_id, content) VALUES (?, ?, ?)", userID, retweetID, *req.Content)
 		if err != nil {
 			return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 		}
@@ -426,13 +427,14 @@ func (h *TweetHandler) CreateRetweet(c echo.Context) error {
 
 type ReplyRequest struct {
 	Content string `json:"content" validate:"required"`
-	ReplyID int `json:"reply_id" validate:"required"`
 }
 
 func (h *TweetHandler) CreateReply(c echo.Context) error {
 	userID := c.Get("user_id").(int)
-	
+
 	req := new(ReplyRequest)
+	// パスからreply_idを取得
+	replyID := c.Param("id")
 	if err := c.Bind(req); err != nil {
 		return c.JSON(400, map[string]string{"message": "Bad Request"})
 	}
@@ -441,9 +443,11 @@ func (h *TweetHandler) CreateReply(c echo.Context) error {
 		return c.JSON(400, map[string]string{"message": "Bad Request"})
 	}
 
+	log.Printf("req: %#v\n", req.Content)
+
 	var tweet model.Tweet
 	// reply_idが存在するか確認
-	err := h.db.Get(&tweet, "SELECT * FROM tweets WHERE id = ?", req.ReplyID)
+	err := h.db.Get(&tweet, "SELECT * FROM tweets WHERE id = ?", replyID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return c.JSON(404, map[string]string{"message": "Not Found"})
@@ -455,7 +459,7 @@ func (h *TweetHandler) CreateReply(c echo.Context) error {
 		return c.JSON(400, map[string]string{"message": "Bad Request"})
 	}
 
-	_, err = h.db.Exec("INSERT INTO tweets (user_id, reply_id, content) VALUES (?, ?, ?)", userID, req.ReplyID, req.Content)
+	_, err = h.db.Exec("INSERT INTO tweets (user_id, reply_id, content) VALUES (?, ?, ?)", userID, replyID, req.Content)
 	if err != nil {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
