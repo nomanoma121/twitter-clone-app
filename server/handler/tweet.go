@@ -27,8 +27,8 @@ func (h *TweetHandler) Register(g *echo.Group) {
 	g.GET("/tweets/follow", h.GetFollowTweets)
 	// g.GET("/users/:display_id/tweets", h.GetUserTweets)
 	g.POST("/tweet", h.CreateTweet)
-	// g.POST("/tweet/:tweet_id/retweet", h.CreateRetweet)
-	// g.POST("/tweet/:tweet_id/reply", h.CreateRetweet)
+	g.POST("/tweet/:tweet_id/retweet", h.CreateRetweet)
+	g.POST("/tweet/:tweet_id/reply", h.CreateRetweet)
 }
 
 type GetTimelineTweetsResponseUser struct {
@@ -380,8 +380,8 @@ func (h *TweetHandler) CreateTweet(c echo.Context) error {
 }
 
 type RetweetRequest struct {
-	TweetID int     `json:"tweet_id" validate:"required"`
 	Content *string `json:"content"`
+	RetweetID int `json:"retweet_id" validate:"required"`
 }
 
 func (h *TweetHandler) CreateRetweet(c echo.Context) error {
@@ -397,7 +397,7 @@ func (h *TweetHandler) CreateRetweet(c echo.Context) error {
 	}
 
 	var tweet model.Tweet
-	err := h.db.Get(&tweet, "SELECT * FROM tweets WHERE id = ?", req.TweetID)
+	err := h.db.Get(&tweet, "SELECT * FROM tweets WHERE id = ?", req.RetweetID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return c.JSON(404, map[string]string{"message": "Not Found"})
@@ -410,12 +410,12 @@ func (h *TweetHandler) CreateRetweet(c echo.Context) error {
 	}
 
 	if req.Content == nil {
-		_, err = h.db.Exec("INSERT INTO tweets (user_id, retweet_id) VALUES (?, ?)", userID, req.TweetID)
+		_, err = h.db.Exec("INSERT INTO tweets (user_id, retweet_id) VALUES (?, ?)", userID, req.RetweetID)
 		if err != nil {
 			return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 		}
 	} else {
-		_, err = h.db.Exec("INSERT INTO tweets (user_id, retweet_id, content) VALUES (?, ?, ?)", userID, req.TweetID, *req.Content)
+		_, err = h.db.Exec("INSERT INTO tweets (user_id, retweet_id, content) VALUES (?, ?, ?)", userID, req.RetweetID, *req.Content)
 		if err != nil {
 			return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 		}
@@ -424,9 +424,44 @@ func (h *TweetHandler) CreateRetweet(c echo.Context) error {
 	return c.NoContent(201)
 }
 
-// func (h *TweetHandler) CreateReply(c echo.Context) error {
+type ReplyRequest struct {
+	Content string `json:"content" validate:"required"`
+	ReplyID int `json:"reply_id" validate:"required"`
+}
 
-// }
+func (h *TweetHandler) CreateReply(c echo.Context) error {
+	userID := c.Get("user_id").(int)
+	
+	req := new(ReplyRequest)
+	if err := c.Bind(req); err != nil {
+		return c.JSON(400, map[string]string{"message": "Bad Request"})
+	}
+
+	if err := h.validator.Struct(req); err != nil {
+		return c.JSON(400, map[string]string{"message": "Bad Request"})
+	}
+
+	var tweet model.Tweet
+	// reply_idが存在するか確認
+	err := h.db.Get(&tweet, "SELECT * FROM tweets WHERE id = ?", req.ReplyID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.JSON(404, map[string]string{"message": "Not Found"})
+		}
+		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+	}
+
+	if tweet.ReplyID != nil {
+		return c.JSON(400, map[string]string{"message": "Bad Request"})
+	}
+
+	_, err = h.db.Exec("INSERT INTO tweets (user_id, reply_id, content) VALUES (?, ?, ?)", userID, req.ReplyID, req.Content)
+	if err != nil {
+		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+	}
+
+	return c.NoContent(201)
+}
 
 func (h *TweetHandler) handleError(c echo.Context, err error) error {
 	log.Println(err)
