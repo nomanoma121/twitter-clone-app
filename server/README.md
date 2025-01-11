@@ -12,6 +12,7 @@
 ### タイムラインのツイートを取得
 `GET api/tweets/timeline?cursor...=&limit=...`
 #### レスポンス例
+※リプライはタイムラインに流れない
 ```json
 {
   {

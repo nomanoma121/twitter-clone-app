@@ -65,11 +65,12 @@ type GetTimelineTweetsResponse struct {
 // HACK: コードが冗長なのでリファクタリングする
 func (h *TweetHandler) GetTimelineTweets(c echo.Context) error {
 	var tweets []model.Tweet
-	// TweetとUserをJOINして取得
+	// TweetとUserをJOINして取得,replyは除外
 	err := h.db.Select(&tweets, `
 		SELECT tweets.*, user_profiles.user_id as "user.id", user_profiles.name as "user.name", user_profiles.display_id as "user.display_id", user_profiles.icon_url as "user.icon_url"
 		FROM tweets
 		JOIN user_profiles ON tweets.user_id = user_profiles.user_id
+		WHERE tweets.reply_id IS NULL
 	`)
 	if err != nil {
 		return h.handleError(c, err)
@@ -85,7 +86,7 @@ func (h *TweetHandler) GetTimelineTweets(c echo.Context) error {
 	// RetweetがあればRetweet対象のツイートを取得
 	if len(retweetIDs) > 0 {
 		query, args, err := sqlx.In(`
-			SELECT tweets.*, user_profiles.user_id as "user.id", user_profiles.name as "user.name", user_profiles.display_id as "user.display_id"
+			SELECT tweets.*, user_profiles.user_id as "user.id", user_profiles.name as "user.name", user_profiles.display_id as "user.display_id", user_profiles.icon_url as "user.icon_url"
 			FROM tweets
 			JOIN user_profiles ON tweets.user_id = user_profiles.user_id
 			WHERE tweets.id IN (?)
@@ -207,11 +208,13 @@ func (h *TweetHandler) GetFollowTweets(c echo.Context) error {
 	// フォローしているユーザーのツイートを取得
 	var tweets []model.Tweet
 	if len(followIDs) > 0 {
+		// replyは除外
 		query, args, err := sqlx.In(`
 			SELECT tweets.*, user_profiles.user_id as "user.id", user_profiles.name as "user.name", user_profiles.display_id as "user.display_id", user_profiles.icon_url as "user.icon_url"
 			FROM tweets
 			JOIN user_profiles ON tweets.user_id = user_profiles.user_id
 			WHERE tweets.user_id IN (?)
+			AND tweets.reply_id IS NULL
 		`, followIDs)
 		if err != nil {
 			return h.handleError(c, err)
