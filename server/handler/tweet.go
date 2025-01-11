@@ -226,7 +226,7 @@ func (h *TweetHandler) GetFollowTweets(c echo.Context) error {
 
 	// リツイート情報の取得
 	var retweets []model.Tweet
-	var retweetIDs []interface{} // intだとエラーになる
+	var retweetIDs []int // intだとエラーになる
 	for _, tweet := range tweets {
 		if tweet.RetweetID != nil {
 			retweetIDs = append(retweetIDs, *tweet.RetweetID)
