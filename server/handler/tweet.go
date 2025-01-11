@@ -197,26 +197,36 @@ func (h *TweetHandler) GetTimelineTweets(c echo.Context) error {
 func (h *TweetHandler) GetFollowTweets(c echo.Context) error {
 	userID := c.Get("user_id").(int)
 
-	var followIDs []interface{}
+	// フォローしているユーザーIDを取得
+	var followIDs []int
 	err := h.db.Select(&followIDs, "SELECT followee_id FROM follows WHERE follower_id = ?", userID)
 	if err != nil {
 		return h.handleError(c, err)
 	}
-	
+
+	// フォローしているユーザーのツイートを取得
 	var tweets []model.Tweet
-	err = h.db.Select(&tweets, `
-		SELECT tweets.*, user_profiles.user_id as "user.id", user_profiles.name as "user.name", user_profiles.display_id as "user.display_id", user_profiles.icon_url as "user.icon_url"
-		FROM tweets
-		JOIN user_profiles ON tweets.user_id = user_profiles.user_id
-		WHERE tweets.user_id IN (?)
-	`, followIDs)
-	if err != nil {
-		return h.handleError(c, err)
+	if len(followIDs) > 0 {
+		query, args, err := sqlx.In(`
+			SELECT tweets.*, user_profiles.user_id as "user.id", user_profiles.name as "user.name", user_profiles.display_id as "user.display_id", user_profiles.icon_url as "user.icon_url"
+			FROM tweets
+			JOIN user_profiles ON tweets.user_id = user_profiles.user_id
+			WHERE tweets.user_id IN (?)
+		`, followIDs)
+		if err != nil {
+			return h.handleError(c, err)
+		}
+
+		query = h.db.Rebind(query)
+		err = h.db.Select(&tweets, query, args...)
+		if err != nil {
+			return h.handleError(c, err)
+		}
 	}
 
+	// リツイート情報の取得
 	var retweets []model.Tweet
 	var retweetIDs []interface{} // intだとエラーになる
-
 	for _, tweet := range tweets {
 		if tweet.RetweetID != nil {
 			retweetIDs = append(retweetIDs, *tweet.RetweetID)
@@ -225,7 +235,7 @@ func (h *TweetHandler) GetFollowTweets(c echo.Context) error {
 
 	if len(retweetIDs) > 0 {
 		query, args, err := sqlx.In(`
-			SELECT tweets.*, user_profiles.user_id as "user.id", user_profiles.name as "user.name", user_profiles.display_id as "user.display_id"
+			SELECT tweets.*, user_profiles.user_id as "user.id", user_profiles.name as "user.name", user_profiles.display_id as "user.display_id", user_profiles.icon_url as "user.icon_url"
 			FROM tweets
 			JOIN user_profiles ON tweets.user_id = user_profiles.user_id
 			WHERE tweets.id IN (?)
@@ -233,6 +243,7 @@ func (h *TweetHandler) GetFollowTweets(c echo.Context) error {
 		if err != nil {
 			return h.handleError(c, err)
 		}
+
 		query = h.db.Rebind(query)
 		err = h.db.Select(&retweets, query, args...)
 		if err != nil {
@@ -240,11 +251,13 @@ func (h *TweetHandler) GetFollowTweets(c echo.Context) error {
 		}
 	}
 
+	// リツイートIDをマップ化
 	var retweetMap = map[int]model.Tweet{}
 	for _, retweet := range retweets {
 		retweetMap[retweet.ID] = retweet
 	}
 
+	// ツイートにリツイート情報を紐付け
 	for i, tweet := range tweets {
 		if tweet.RetweetID != nil {
 			retweet, ok := retweetMap[*tweet.RetweetID]
@@ -255,6 +268,7 @@ func (h *TweetHandler) GetFollowTweets(c echo.Context) error {
 		}
 	}
 
+	// いいね数を取得
 	var likeCounts []model.CountResult
 	err = h.db.Select(&likeCounts, `
 		SELECT tweet_id, COUNT(*) as count
@@ -270,9 +284,9 @@ func (h *TweetHandler) GetFollowTweets(c echo.Context) error {
 		likeCountMap[count.TweetID] = count.Count
 	}
 
+	// リツイート数と返信数をカウント
 	var retweetCountMap = map[int]int{}
 	var replyCountMap = map[int]int{}
-
 	for _, tweet := range tweets {
 		if tweet.RetweetID != nil {
 			retweetCountMap[*tweet.RetweetID]++
@@ -282,10 +296,7 @@ func (h *TweetHandler) GetFollowTweets(c echo.Context) error {
 		}
 	}
 
-	log.Println(likeCountMap)
-	log.Println(retweetCountMap)
-	log.Println(replyCountMap)
-
+	// レスポンスデータの作成
 	res := make([]GetTimelineTweetsResponse, len(tweets))
 	for i, tweet := range tweets {
 		retweet := (*GetTimelineTweetsResponseRetweet)(nil)
@@ -298,7 +309,7 @@ func (h *TweetHandler) GetFollowTweets(c echo.Context) error {
 					DisplayID: tweet.Retweet.User.DisplayID,
 					IconURL:   tweet.Retweet.User.IconURL,
 				},
-				Content:   tweet.Retweet.Content,
+				Content: tweet.Retweet.Content,
 				Interactions: GetTimelineTweetsResponseInteractions{
 					LikeCount:    likeCountMap[tweet.Retweet.ID],
 					RetweetCount: retweetCountMap[tweet.Retweet.ID],
@@ -308,15 +319,15 @@ func (h *TweetHandler) GetFollowTweets(c echo.Context) error {
 			}
 		}
 		res[i] = GetTimelineTweetsResponse{
-			ID:        tweet.ID,
+			ID: tweet.ID,
 			User: GetTimelineTweetsResponseUser{
 				ID:        tweet.User.ID,
 				Name:      tweet.User.Name,
 				DisplayID: tweet.User.DisplayID,
 				IconURL:   tweet.User.IconURL,
 			},
-			Content:   tweet.Content,
-			Retweet:   retweet,
+			Content: tweet.Content,
+			Retweet: retweet,
 			Interactions: GetTimelineTweetsResponseInteractions{
 				LikeCount:    likeCountMap[tweet.ID],
 				RetweetCount: retweetCountMap[tweet.ID],
