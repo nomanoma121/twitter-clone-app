@@ -24,36 +24,12 @@ func NewTweetHandler(db *sqlx.DB) *TweetHandler {
 
 func (h *TweetHandler) Register(g *echo.Group) {
 	g.GET("/tweets/timeline", h.GetTimelineTweets)
-	g.GET("/tweets/follow", h.GetTweets)
-	g.GET("/users/:display_id/tweets", h.GetTweets)
-	g.POST("/tweets/:tweet_id/retweet", h.Retweet)
-	g.POST("/tweets/:tweet_id/reply", h.Retweet)
+	g.GET("/tweets/follow", h.GetFollowTweets)
+	// g.GET("/users/:display_id/tweets", h.GetUserTweets)
 	g.POST("/tweet", h.CreateTweet)
+	// g.POST("/tweet/:tweet_id/retweet", h.CreateRetweet)
+	// g.POST("/tweet/:tweet_id/reply", h.CreateRetweet)
 }
-
-// type GetAllTweetsResponseUser struct {
-// 	ID        int    `json:"id"`
-// 	DisplayID string `json:"display_id"`
-// 	Name      string `json:"name"`
-// }
-
-// type GetAllTweetsResponseRetweet struct {
-// 	ID        int                      `json:"id"`
-// 	User      GetAllTweetsResponseUser `json:"user"`
-// 	Content   string                   `json:"content"`
-// 	CreatedAt time.Time                `json:"created_at"`
-// }
-
-// type GetAllTweetsResponseReply = GetAllTweetsResponseRetweet
-
-// type GetAllTweetsResponse struct {
-// 	ID        int                          `json:"id"`
-// 	User      GetAllTweetsResponseUser     `json:"user"`
-// 	Content   string                       `json:"content"`
-// 	Retweet   *GetAllTweetsResponseRetweet `json:"retweet"`
-// 	Reply     *GetAllTweetsResponseReply   `json:"reply"`
-// 	CreatedAt time.Time                    `json:"created_at"`
-// }
 
 type GetTimelineTweetsResponseUser struct {
 	ID        int    `json:"id"`
@@ -218,117 +194,144 @@ func (h *TweetHandler) GetTimelineTweets(c echo.Context) error {
 	return c.JSON(200, res)
 }
 
-func (h *TweetHandler) handleError(c echo.Context, err error) error {
-	log.Println(err)
-	return c.JSON(500, map[string]string{"message": "Internal Server Error"})
-}
-
-type GetTweetsResponseUser struct {
-	ID        int    `json:"id"`
-	DisplayID string `json:"display_id"`
-	Name      string `json:"name"`
-}
-
-type GetTweetsResponseRetweet struct {
-	ID      int                   `json:"id"`
-	User    GetTweetsResponseUser `json:"user"`
-	Content string                `json:"content"`
-}
-
-type GetTweetsResponse struct {
-	ID      int                       `json:"id"`
-	User    GetTweetsResponseUser     `json:"user"`
-	Content string                    `json:"content"`
-	Retweet *GetTweetsResponseRetweet `json:"retweet"`
-}
-
-func (h *TweetHandler) GetTweets(c echo.Context) error {
+func (h *TweetHandler) GetFollowTweets(c echo.Context) error {
 	userID := c.Get("user_id").(int)
 
+	var followIDs []interface{}
+	err := h.db.Select(&followIDs, "SELECT followee_id FROM follows WHERE follower_id = ?", userID)
+	if err != nil {
+		return h.handleError(c, err)
+	}
+	
 	var tweets []model.Tweet
-	err := h.db.Select(&tweets, `
-		SELECT tweets.*, user_profiles.user_id as "user.id", user_profiles.name as "user.name", user_profile.display_id as "user.display_id"
+	err = h.db.Select(&tweets, `
+		SELECT tweets.*, user_profiles.user_id as "user.id", user_profiles.name as "user.name", user_profiles.display_id as "user.display_id", user_profiles.icon_url as "user.icon_url"
 		FROM tweets
 		JOIN user_profiles ON tweets.user_id = user_profiles.user_id
-		WHERE tweets.user_id = ?
-	`, userID)
-
-
-
+		WHERE tweets.user_id IN (?)
+	`, followIDs)
 	if err != nil {
-		log.Println(err)
-		if errors.Is(err, sql.ErrNoRows) {
-			return c.JSON(200, []GetTweetsResponse{})
-		}
-		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+		return h.handleError(c, err)
 	}
+
 	var retweets []model.Tweet
-	var retweetIDs []int
+	var retweetIDs []interface{} // intだとエラーになる
+
 	for _, tweet := range tweets {
 		if tweet.RetweetID != nil {
 			retweetIDs = append(retweetIDs, *tweet.RetweetID)
 		}
 	}
+
 	if len(retweetIDs) > 0 {
 		query, args, err := sqlx.In(`
-			SELECT tweets.*, user_profiles.user_id as "user.id", user_profiles.name as "user.name", user_profile.display_id as "user.display_id"
+			SELECT tweets.*, user_profiles.user_id as "user.id", user_profiles.name as "user.name", user_profiles.display_id as "user.display_id"
 			FROM tweets
 			JOIN user_profiles ON tweets.user_id = user_profiles.user_id
 			WHERE tweets.id IN (?)
 		`, retweetIDs)
-
 		if err != nil {
-			log.Println(err)
-			return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+			return h.handleError(c, err)
 		}
+		query = h.db.Rebind(query)
 		err = h.db.Select(&retweets, query, args...)
 		if err != nil {
-			log.Println(err)
-			return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+			return h.handleError(c, err)
 		}
 	}
+
 	var retweetMap = map[int]model.Tweet{}
 	for _, retweet := range retweets {
 		retweetMap[retweet.ID] = retweet
 	}
+
 	for i, tweet := range tweets {
 		if tweet.RetweetID != nil {
 			retweet, ok := retweetMap[*tweet.RetweetID]
 			if !ok {
-				return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+				return h.handleError(c, errors.New("retweet not found"))
 			}
 			tweets[i].Retweet = &retweet
 		}
 	}
 
-	res := make([]GetTweetsResponse, len(tweets))
+	var likeCounts []model.CountResult
+	err = h.db.Select(&likeCounts, `
+		SELECT tweet_id, COUNT(*) as count
+		FROM likes
+		GROUP BY tweet_id
+	`)
+	if err != nil {
+		return h.handleError(c, err)
+	}
+
+	likeCountMap := map[int]int{}
+	for _, count := range likeCounts {
+		likeCountMap[count.TweetID] = count.Count
+	}
+
+	var retweetCountMap = map[int]int{}
+	var replyCountMap = map[int]int{}
+
+	for _, tweet := range tweets {
+		if tweet.RetweetID != nil {
+			retweetCountMap[*tweet.RetweetID]++
+		}
+		if tweet.ReplyID != nil {
+			replyCountMap[*tweet.ReplyID]++
+		}
+	}
+
+	log.Println(likeCountMap)
+	log.Println(retweetCountMap)
+	log.Println(replyCountMap)
+
+	res := make([]GetTimelineTweetsResponse, len(tweets))
 	for i, tweet := range tweets {
-		retweet := (*GetTweetsResponseRetweet)(nil)
+		retweet := (*GetTimelineTweetsResponseRetweet)(nil)
 		if tweet.Retweet != nil {
-			retweet = &GetTweetsResponseRetweet{
+			retweet = &GetTimelineTweetsResponseRetweet{
 				ID: tweet.Retweet.ID,
-				User: GetTweetsResponseUser{
+				User: GetTimelineTweetsResponseUser{
 					ID:        tweet.Retweet.User.ID,
 					Name:      tweet.Retweet.User.Name,
 					DisplayID: tweet.Retweet.User.DisplayID,
+					IconURL:   tweet.Retweet.User.IconURL,
 				},
-				Content: tweet.Retweet.Content,
+				Content:   tweet.Retweet.Content,
+				Interactions: GetTimelineTweetsResponseInteractions{
+					LikeCount:    likeCountMap[tweet.Retweet.ID],
+					RetweetCount: retweetCountMap[tweet.Retweet.ID],
+					ReplyCount:   replyCountMap[tweet.Retweet.ID],
+				},
+				CreatedAt: tweet.Retweet.CreatedAt,
 			}
 		}
-		res[i] = GetTweetsResponse{
-			ID: tweet.ID,
-			User: GetTweetsResponseUser{
+		res[i] = GetTimelineTweetsResponse{
+			ID:        tweet.ID,
+			User: GetTimelineTweetsResponseUser{
 				ID:        tweet.User.ID,
 				Name:      tweet.User.Name,
 				DisplayID: tweet.User.DisplayID,
+				IconURL:   tweet.User.IconURL,
 			},
-			Content: tweet.Content,
-			Retweet: retweet,
+			Content:   tweet.Content,
+			Retweet:   retweet,
+			Interactions: GetTimelineTweetsResponseInteractions{
+				LikeCount:    likeCountMap[tweet.ID],
+				RetweetCount: retweetCountMap[tweet.ID],
+				ReplyCount:   replyCountMap[tweet.ID],
+			},
+			CreatedAt: tweet.CreatedAt,
 		}
 	}
 
 	return c.JSON(200, res)
 }
+
+// func (h *TweetHandler) GetUserTweets(c echo.Context) error {
+
+// }
 
 type CreateTweetRequest struct {
 	Content string `json:"content" validate:"required"`
@@ -361,7 +364,7 @@ type RetweetRequest struct {
 	Content *string `json:"content"`
 }
 
-func (h *TweetHandler) Retweet(c echo.Context) error {
+func (h *TweetHandler) CreateRetweet(c echo.Context) error {
 	userID := c.Get("user_id").(int)
 
 	req := new(RetweetRequest)
@@ -399,4 +402,13 @@ func (h *TweetHandler) Retweet(c echo.Context) error {
 	}
 
 	return c.NoContent(201)
+}
+
+// func (h *TweetHandler) CreateReply(c echo.Context) error {
+
+// }
+
+func (h *TweetHandler) handleError(c echo.Context, err error) error {
+	log.Println(err)
+	return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 }
