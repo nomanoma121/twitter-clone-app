@@ -1,14 +1,17 @@
+import { useNavigate } from "react-router";
 import { TTweet } from "../../types/tweet";
 
 interface TweetListItemProps {
   tweet: TTweet;
-  refetch: () => void | null; // エラーしないようにnullを追加
+  refetch: () => void; // エラーしないようにnullを追加
 }
 
 export const TweetListItem = ({ tweet, refetch }: TweetListItemProps) => {
   // refetchはとりあえず残したいけど今は使わない。エラーだけ外したかった
+  const navigate = useNavigate();
+  console.log(tweet.user.display_id);
   return (
-    <div className="TweetListItem" style={{ border: "1px solid black" }}  >
+    <div key={tweet.id} className="TweetListItem" style={{ border: "1px solid black" }} onClick={() => navigate(`/${tweet.user.display_id}/status/${tweet.id}`)}>
       <p>{tweet.retweet ? "リツイート" : ""}</p>
       <div className="TweetListItem__user">
         <p>{tweet.user.name}</p>

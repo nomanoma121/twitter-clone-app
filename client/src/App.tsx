@@ -3,6 +3,7 @@ import { Header } from "./components/header";
 import { lazy } from "react";
 import { Container } from "./components/container/container";
 import { AuthGuard } from "./components/auth-guard";
+import { TweetDetail } from "./pages/tweet-detail";
 
 const Top = lazy(() => import("./pages/top"));
 const Todo = lazy(() => import("./pages/todo"));
@@ -29,7 +30,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/home" element={<Home />} />
-          <Route path="/:displayId/status/:tweetId" element={<Home />} />
+          <Route path="/:displayId/status/:tweetId" element={<TweetDetail />} />
           {/* <Route path="/compose/tweet" element={<Tweet />} /> */}
         </Routes>
       </Container>
