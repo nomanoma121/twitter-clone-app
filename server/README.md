@@ -63,6 +63,24 @@
 
 これも上と同じ
 
+### あるidのツイートを取得
+`GET api/tweets/:id`
+
+レスポンス例
+```
+{
+  "id": 3,
+  "user": {
+    ...
+  },
+  "content": "this is tweet",
+  "interactions": {
+    ...
+  },
+  "created_at": "...",
+}
+```
+
 ### あるツイートの詳細(リプライ)を取得
 `GET api/tweets/:id/replys
 ```json

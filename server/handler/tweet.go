@@ -24,6 +24,7 @@ func NewTweetHandler(db *sqlx.DB) *TweetHandler {
 func (h *TweetHandler) Register(g *echo.Group) {
 	g.GET("/tweets/timeline", h.GetTimelineTweets)
 	g.GET("/tweets/follow", h.GetFollowTweets)
+	g.GET("/tweet/:id", h.GetTweetByID)
 	// g.GET("/users/:display_id/tweets", h.GetUserTweets)
 	g.POST("/tweet", h.CreateTweet)
 	g.POST("/tweet/:id/retweet", h.CreateRetweet)
@@ -342,6 +343,75 @@ func (h *TweetHandler) GetFollowTweets(c echo.Context) error {
 			},
 			CreatedAt: tweet.CreatedAt,
 		}
+	}
+
+	return c.JSON(200, res)
+}
+
+type GetTweetByIDResponseUser = GetTimelineTweetsResponseUser
+type GetTweetByIDResponseInteractions = GetTimelineTweetsResponseInteractions
+
+type GetTweetByIDResponse struct {
+	ID           int       `json:"id"`
+	User     GetTweetByIDResponseUser `json:"user"`
+	Content      string    `json:"content"`
+	Interactions GetTweetByIDResponseInteractions `json:"interactions"`
+	CreatedAt    time.Time `json:"created_at"`
+}
+
+func (h *TweetHandler) GetTweetByID(c echo.Context) error {
+	tweetID := c.Param("id")
+
+	var tweet model.Tweet
+	err := h.db.Get(&tweet, `
+		SELECT tweets.*, user_profiles.user_id as "user.id", user_profiles.name as "user.name", user_profiles.display_id as "user.display_id", user_profiles.icon_url as "user.icon_url"
+		FROM tweets
+		JOIN user_profiles ON tweets.user_id = user_profiles.user_id
+		WHERE tweets.id = ?
+	`, tweetID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.JSON(404, map[string]string{"message": "Not Found"})
+		}
+		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+	}
+
+	// いいね数を取得
+	var likeCount int
+	err = h.db.Get(&likeCount, "SELECT COUNT(*) FROM likes WHERE tweet_id = ?", tweetID)
+	if err != nil {
+		return h.handleError(c, err)
+	}
+
+	// リツイート数を取得
+	var retweetCount int
+	err = h.db.Get(&retweetCount, "SELECT COUNT(*) FROM tweets WHERE retweet_id = ?", tweetID)
+	if err != nil {
+		return h.handleError(c, err)
+	}
+
+	// リプライ数を取得
+	var replyCount int
+	err = h.db.Get(&replyCount, "SELECT COUNT(*) FROM tweets WHERE reply_id = ?", tweetID)
+	if err != nil {
+		return h.handleError(c, err)
+	}
+
+	res := GetTweetByIDResponse{
+		ID: tweet.ID,
+		User: GetTweetByIDResponseUser{
+			ID:        tweet.User.ID,
+			Name:      tweet.User.Name,
+			DisplayID: tweet.User.DisplayID,
+			IconURL:   tweet.User.IconURL,
+		},
+		Content: tweet.Content,
+		Interactions: GetTweetByIDResponseInteractions{
+			LikeCount:    likeCount,
+			RetweetCount: retweetCount,
+			ReplyCount:   replyCount,
+		},
+		CreatedAt: tweet.CreatedAt,
 	}
 
 	return c.JSON(200, res)

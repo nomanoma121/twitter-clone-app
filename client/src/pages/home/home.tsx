@@ -4,7 +4,7 @@ import { useTweets } from "../../hooks/use-tweets";
 
 export const Home = () => {
   const { user } = useAuth();
-  const { tweets, fetchTweets } = useTweets("api/tweets/timeline");
+  const { tweets, fetchTweets } = useTweets("/api/tweets/timeline");
 
   if (!user) return null;
 
