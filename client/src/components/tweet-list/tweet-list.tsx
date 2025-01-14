@@ -1,4 +1,4 @@
-import { TTweet } from "../../../../../types/tweet";
+import { TTweet } from "../../types/tweet";
 import { TweetListItem } from "../tweet-list-item";
 
 interface TweetListProps {

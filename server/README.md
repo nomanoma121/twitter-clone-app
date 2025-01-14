@@ -63,9 +63,26 @@
 
 これも上と同じ
 
-### あるツイートの詳細を取得
-`GET api/tweets/:id`
+### あるツイートの詳細(リプライ)を取得
+`GET api/tweets/:id/replys
+```json
+{
+  {
+    "id": 1,
+    "user": {
+      ...
+    },
+    "content": "これはリプライ",
+    "interactions": {
+      ...
+    },
+    "created_at": "",
+  },
+  {
 
+  }
+}
+```
 
 ### ツイートする
 `POST api/tweet`

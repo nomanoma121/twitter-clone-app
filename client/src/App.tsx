@@ -29,6 +29,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/home" element={<Home />} />
+          <Route path="/:displayId/status/:tweetId" element={<Home />} />
           {/* <Route path="/compose/tweet" element={<Tweet />} /> */}
         </Routes>
       </Container>

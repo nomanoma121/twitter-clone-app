@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { serverFetch } from "../../../../utils/fetch";
+import { serverFetch } from "../utils/fetch";
 
 type Tweet = {
   id: number;
@@ -26,13 +26,19 @@ type Tweet = {
     };
     created_at: string;
   } | null;
+  interactions: {
+    retweet_count: number;
+    reply_count: number;
+    like_count: number;
+  };
+  created_at: string;
 };
 
-export const useTweets = () => {
+export const useTweets = (url: string) => {
   const [tweets, setTweets] = useState<Tweet[]>([]);
 
   const fetchTweets = async () => {
-    const res = await serverFetch("/api/tweets/timeline");
+    const res = await serverFetch(url);
 
     if (res.ok) {
       const data = await res.json();

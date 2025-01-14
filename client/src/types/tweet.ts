@@ -12,7 +12,7 @@ export type TTweet = {
         user: {
             id: number
             name: string
-            
+            display_id: string
         }
         content: string
         interactions: {

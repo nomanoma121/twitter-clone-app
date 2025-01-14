@@ -22,7 +22,6 @@ type AuthHandler struct {
 	secret    string
 }
 
-// TODO: 以前のコミット状態に戻す
 func NewAuthHandler(db *sqlx.DB, secret string) *AuthHandler {
 	return &AuthHandler{db: db, validator: validator.New(), secret: secret}
 }
@@ -35,15 +34,15 @@ func (h *AuthHandler) Register(g *echo.Group, authMiddleware *middleware.AuthMid
 
 type SignupRequest struct {
 	Name      string `json:"name" validate:"required"`
-	DisplayID string `json:"display_id" validate:"required"`
 	Email     string `json:"email" validate:"required,email"`
+	DisplayID string `json:"display_id" validate:"required"`
 	Password  string `json:"password" validate:"required,min=8"`
 }
 
 type TokenUserResponse struct {
-	ID        int    `json:"id"`
-	Name      string `json:"name"`
-	DisplayID string `json:"display_id"`
+	ID    int    `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }
 
 type TokenResponse struct {
@@ -66,15 +65,15 @@ func (h *AuthHandler) Signup(c echo.Context) error {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
-	// usersテーブルに挿入
-	res := h.db.MustExec("INSERT INTO users (email, password_hash) VALUES (?, ?)", req.Email, hash)
+	res, err := h.db.Exec("INSERT INTO users (email, password_hash) VALUES (?, ?)", req.Email, string(hash))
+	if err != nil {
+		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+	}
 
 	id, err := res.LastInsertId()
 	if err != nil {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
-
-	// user_profilesテーブルに挿入
 	_, err = h.db.Exec("INSERT INTO user_profiles (user_id, name, display_id) VALUES (?, ?, ?)", id, req.Name, req.DisplayID)
 
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{"user_id": id}).SignedString([]byte(h.secret))
@@ -82,13 +81,18 @@ func (h *AuthHandler) Signup(c echo.Context) error {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
-	var user model.UserProfile
-	err = h.db.Get(&user, "SELECT * FROM user_profiles WHERE user_id = ?", id)
+	var user model.User
+	err = h.db.Get(&user, "SELECT * FROM users WHERE id = ?", id)
+	if err != nil {
+		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+	}
+	var username string
+	err = h.db.Get(&username, "SELECT name FROM user_profiles WHERE user_id = ?", user.ID)
 	if err != nil {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
-	return c.JSON(200, TokenResponse{Token: token, User: TokenUserResponse{ID: int(id), Name: req.Name, DisplayID: req.DisplayID}})
+	return c.JSON(200, TokenResponse{Token: token, User: TokenUserResponse{ID: user.ID, Name: username, Email: user.Email}})
 }
 
 type LoginRequest struct {
@@ -111,6 +115,11 @@ func (h *AuthHandler) Login(c echo.Context) error {
 	if err != nil {
 		return c.JSON(401, map[string]string{"message": "Unauthorized"})
 	}
+	var username string
+	err = h.db.Get(&username, "SELECT name FROM user_profiles WHERE user_id = ?", user.ID)
+	if err != nil {
+		return c.JSON(401, map[string]string{"message": "Unauthorized"})
+	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password))
 	if err != nil {
@@ -122,29 +131,29 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
-	var userProfile model.UserProfile
-	err = h.db.Get(&userProfile, "SELECT * FROM user_profiles WHERE user_id = ?", user.ID)
-	if err != nil {
-		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
-	}
-
-	return c.JSON(200, TokenResponse{Token: token, User: TokenUserResponse{ID: user.ID, Name: userProfile.Name, DisplayID: userProfile.DisplayID}})
+	return c.JSON(200, TokenResponse{Token: token, User: TokenUserResponse{ID: user.ID, Name: username, Email: user.Email}})
 }
 
 type MeResponse struct {
 	ID        int    `json:"id"`
 	Name      string `json:"name"`
 	DisplayID string `json:"display_id"`
+	Email     string `json:"email"`
 }
 
 func (h *AuthHandler) Me(c echo.Context) error {
 	userID := c.Get("user_id").(int)
 
-	var user model.UserProfile
-	err := h.db.Get(&user, "SELECT * FROM user_profiles WHERE user_id = ?", userID)
+	var user model.User
+	err := h.db.Get(&user, "SELECT * FROM users WHERE id = ?", userID)
+	if err != nil {
+		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+	}
+	var userProfile model.UserProfile
+	err = h.db.Get(&userProfile, "SELECT name, display_id FROM user_profiles WHERE user_id = ?", userID)
 	if err != nil {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
-	return c.JSON(200, MeResponse{ID: user.UserID, Name: user.Name, DisplayID: user.DisplayID})
+	return c.JSON(200, MeResponse{ID: user.ID, Name: userProfile.Name, Email: user.Email, DisplayID: userProfile.DisplayID})
 }

@@ -1,10 +1,10 @@
 import { useAuth } from "../../provider/auth";
-import { TweetList } from "./internal/components/tweet-list";
-import { useTweets } from "./internal/hook/use-tweets";
+import { TweetList } from "../../components/tweet-list";
+import { useTweets } from "../../hooks/use-tweets";
 
 export const Home = () => {
   const { user } = useAuth();
-  const { tweets, fetchTweets } = useTweets();
+  const { tweets, fetchTweets } = useTweets("api/tweets/timeline");
 
   if (!user) return null;
 
