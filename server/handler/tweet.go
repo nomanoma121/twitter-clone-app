@@ -25,6 +25,7 @@ func (h *TweetHandler) Register(g *echo.Group) {
 	g.GET("/tweets/timeline", h.GetTimelineTweets)
 	g.GET("/tweets/follow", h.GetFollowTweets)
 	g.GET("/tweet/:id", h.GetTweetByID)
+	g.GET("/tweets/:id/replies", h.GetTweetReplies)
 	// g.GET("/users/:display_id/tweets", h.GetUserTweets)
 	g.POST("/tweet", h.CreateTweet)
 	g.POST("/tweet/:id/retweet", h.CreateRetweet)
@@ -412,6 +413,82 @@ func (h *TweetHandler) GetTweetByID(c echo.Context) error {
 			ReplyCount:   replyCount,
 		},
 		CreatedAt: tweet.CreatedAt,
+	}
+
+	return c.JSON(200, res)
+}
+
+type GetTweetReplyResponseUser = GetTimelineTweetsResponseUser
+type GetTweetReplyResponseInteractions = GetTimelineTweetsResponseInteractions
+
+type GetTweetReplyResponse struct {
+	ID           int       `json:"id"`
+	User     GetTweetReplyResponseUser `json:"user"`
+	Content      string    `json:"content"`
+	Interactions GetTweetReplyResponseInteractions `json:"interactions"`
+	CreatedAt    time.Time `json:"created_at"`
+}
+
+func (h *TweetHandler) GetTweetReplies(c echo.Context) error {
+	tweetID := c.Param("id")
+
+	var tweets []model.Tweet
+	err := h.db.Select(&tweets, `
+		SELECT tweets.*, user_profiles.user_id as "user.id", user_profiles.name as "user.name", user_profiles.display_id as "user.display_id", user_profiles.icon_url as "user.icon_url"
+		FROM tweets
+		JOIN user_profiles ON tweets.user_id = user_profiles.user_id
+		WHERE tweets.reply_id = ?
+	`, tweetID)
+	if err != nil {
+		return h.handleError(c, err)
+	}
+
+	// いいね数を取得
+	var likeCounts []model.CountResult
+	err = h.db.Select(&likeCounts, `
+		SELECT tweet_id, COUNT(*) as count
+		FROM likes
+		GROUP BY tweet_id
+	`)
+	if err != nil {
+		return h.handleError(c, err)
+	}
+
+	likeCountMap := map[int]int{}
+	for _, count := range likeCounts {
+		likeCountMap[count.TweetID] = count.Count
+	}
+
+	// リツイート数と返信数をカウント
+	var retweetCountMap = map[int]int{}
+	var replyCountMap = map[int]int{}
+	for _, tweet := range tweets {
+		if tweet.RetweetID != nil {
+			retweetCountMap[*tweet.RetweetID]++
+		}
+		if tweet.ReplyID != nil {
+			replyCountMap[*tweet.ReplyID]++
+		}
+	}
+
+	res := make([]GetTweetReplyResponse, len(tweets))
+	for i, tweet := range tweets {
+		res[i] = GetTweetReplyResponse{
+			ID: tweet.ID,
+			User: GetTweetReplyResponseUser{
+				ID:        tweet.User.ID,
+				Name:      tweet.User.Name,
+				DisplayID: tweet.User.DisplayID,
+				IconURL:   tweet.User.IconURL,
+			},
+			Content: tweet.Content,
+			Interactions: GetTweetReplyResponseInteractions{
+				LikeCount:    likeCountMap[tweet.ID],
+				RetweetCount: retweetCountMap[tweet.ID],
+				ReplyCount:   replyCountMap[tweet.ID],
+			},
+			CreatedAt: tweet.CreatedAt,
+		}
 	}
 
 	return c.JSON(200, res)

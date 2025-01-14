@@ -82,7 +82,7 @@
 ```
 
 ### あるツイートの詳細(リプライ)を取得
-`GET api/tweets/:id/replys
+`GET api/tweets/:id/replies
 ```json
 {
   {
