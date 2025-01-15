@@ -11,6 +11,7 @@ const Login = lazy(() => import("./pages/login"));
 const SignUp = lazy(() => import("./pages/signup"));
 const Home = lazy(() => import("./pages/home"));
 const Tweet = lazy(() => import("./pages/tweet"));
+const User = lazy(() => import("./pages/user"));
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/:displayId/status/:tweetId" element={<TweetDetail />} />
           <Route path="/compose/tweet" element={<Tweet />} />
+          <Route path="/:displayId" element={<User />} />
         </Routes>
       </Container>
     </>

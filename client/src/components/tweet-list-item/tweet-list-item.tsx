@@ -2,6 +2,7 @@ import { useNavigate } from "react-router";
 import { TTweet } from "../../types/tweet";
 import { serverFetch } from "../../utils/fetch";
 import React from "react";
+import { Button } from "../button";
 
 interface TweetListItemProps {
   tweet: TTweet;
@@ -32,6 +33,9 @@ export const TweetListItem = ({ tweet, refetch }: TweetListItemProps) => {
     <div key={tweet.id} className="TweetListItem" style={{ border: "1px solid black" }} onClick={() => navigate(`/${tweet.user.display_id}/status/${tweet.id}`)}>
       <p>{tweet.retweet ? "リツイート" : ""}</p>
       <div className="TweetListItem__user">
+        <Button onClick={(e) => {
+          e.stopPropagation();
+          navigate(`/${tweet.user.display_id}`)}}>プロフィール</Button>
         <p>{tweet.user.name}</p>
         <p>@{tweet.user.display_id}</p>
       </div>
@@ -44,6 +48,10 @@ export const TweetListItem = ({ tweet, refetch }: TweetListItemProps) => {
           navigate(`/${tweet.retweet.user.display_id}/status/${tweet.retweet.id}`);
           }}>
           <div className="TweetListItem__retweet__user">
+            <Button style={{ zIndex: "99999"}} onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/${tweet.retweet.user.display_id}`)}
+          }>プロフィール</Button>
             <p>{tweet.retweet.user.name}</p>
             <p>@{tweet.retweet.user.display_id}</p>
           </div>

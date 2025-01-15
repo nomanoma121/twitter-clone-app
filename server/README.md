@@ -147,6 +147,23 @@
 `GET api/like/:id`
 ```json
 {
-  "like": false,
+  "liked": false,
+}
+```
+
+### あるユーザーの情報を取得
+`GET api/users/:id`
+
+```json
+{
+  "id": 3,
+  "name": "fuga",
+  "display_id": "fuga",
+  "icon_image": "...",
+  "header_image": "...",
+  "profile": "Hello, World! My name is fuga.",
+  "followers": 4,
+  "followee": 5,
+  "created_at": "...",
 }
 ```
