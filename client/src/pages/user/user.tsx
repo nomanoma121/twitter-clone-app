@@ -1,19 +1,14 @@
-import { Button } from "../../components/button";
-import { serverFetch } from "../../utils/fetch";
+import { useAuth } from "../../provider/auth";
+import { UserProfile } from "./internal/components/user-profile";
 
 export const User = () => {
-  const path = window.location.pathname;
-  const username = path.split("/")[1];
-  const res = await serverFetch(`/api/user/${username}`);
+  const { user } = useAuth();
+
+  if (!user) return null;
+
   return (
-    <div>
-      <div>
-        <h1>{username}</h1>
-        <Button>Follow</Button>
-        <div>
-          <p></p>
-        </div>
-      </div>
+    <div className="User" style={{ border: "1px solid black" }}>
+      <UserProfile />
     </div>
-  )
-}
+  );
+};
