@@ -8,7 +8,6 @@ type UserProfile struct {
 	ID        int       `db:"id"`
 	UserID    int       `db:"user_id"`
 	Name      string    `db:"name"`
-	Email     string    `db:"email"`
 	DisplayID string    `db:"display_id"`
 	IconURL   string    `db:"icon_url"`
 	HeaderURL string    `db:"header_url"`
