@@ -355,7 +355,7 @@ type GetTweetByIDResponseRetweet = GetTimelineTweetsResponseRetweet
 type GetTweetByIDResponse struct {
 	ID           int                              `json:"id"`
 	User         GetTweetByIDResponseUser         `json:"user"`
-	Content      *string                          `json:"content"`
+	Content      string                           `json:"content"`
 	Retweet      *GetTweetByIDResponseRetweet     `json:"retweet"`
 	Interactions GetTweetByIDResponseInteractions `json:"interactions"`
 	CreatedAt    time.Time                        `json:"created_at"`
@@ -378,7 +378,7 @@ func (h *TweetHandler) GetTweetByID(c echo.Context) error {
 		return h.handleError(c, err)
 	}
 
-	var retweet *model.Tweet
+	var retweet model.Tweet // ポインタから値にしたらエラーが消えた
 	if tweet.RetweetID != nil {
 		err = h.db.Get(&retweet, `
 			SELECT tweets.*, user_profiles.user_id as "user.id", user_profiles.name as "user.name", user_profiles.display_id as "user.display_id", user_profiles.icon_url as "user.icon_url"
@@ -406,11 +406,11 @@ func (h *TweetHandler) GetTweetByID(c echo.Context) error {
 	for _, count := range likeCounts {
 		likeCountMap[count.TweetID] = count.Count
 	}
-
+	
 	// リツイート数と返信数をカウント
 	var retweetCountMap = map[int]int{}
 	var replyCountMap = map[int]int{}
-	if retweet != nil {
+	if tweet.RetweetID != nil {
 		retweetCountMap[*tweet.RetweetID]++
 	}
 	if tweet.ReplyID != nil {
@@ -425,13 +425,17 @@ func (h *TweetHandler) GetTweetByID(c echo.Context) error {
 			DisplayID: tweet.User.DisplayID,
 			IconURL:   tweet.User.IconURL,
 		},
-		Content:      &tweet.Content,
-		Retweet:      (*GetTweetByIDResponseRetweet)(nil),
-		Interactions: GetTweetByIDResponseInteractions{},
-		CreatedAt:    tweet.CreatedAt,
+		Content: tweet.Content,
+		Retweet: (*GetTweetByIDResponseRetweet)(nil),
+		Interactions: GetTweetByIDResponseInteractions{
+			LikeCount:    likeCountMap[tweet.ID],
+			RetweetCount: retweetCountMap[tweet.ID],
+			ReplyCount:   replyCountMap[tweet.ID],
+		},
+		CreatedAt: tweet.CreatedAt,
 	}
 
-	if retweet != nil {
+	if tweet.RetweetID != nil {
 		res.Retweet = &GetTweetByIDResponseRetweet{
 			ID: retweet.ID,
 			User: GetTweetByIDResponseUser{
@@ -442,17 +446,13 @@ func (h *TweetHandler) GetTweetByID(c echo.Context) error {
 			},
 			Content: retweet.Content,
 			Interactions: GetTweetByIDResponseInteractions{
-				LikeCount:    likeCountMap[*tweet.RetweetID],
-				RetweetCount: retweetCountMap[*tweet.RetweetID],
-				ReplyCount:   replyCountMap[*tweet.RetweetID],
+				LikeCount:    likeCountMap[retweet.ID],
+				RetweetCount: retweetCountMap[retweet.ID],
+				ReplyCount:   replyCountMap[retweet.ID],
 			},
 			CreatedAt: retweet.CreatedAt,
 		}
 	}
-
-	res.Interactions.LikeCount = likeCountMap[tweet.ID]
-	res.Interactions.RetweetCount = retweetCountMap[tweet.ID]
-	res.Interactions.ReplyCount = replyCountMap[tweet.ID]
 
 	return c.JSON(200, res)
 }
