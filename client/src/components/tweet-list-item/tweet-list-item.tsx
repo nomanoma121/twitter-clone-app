@@ -11,9 +11,7 @@ interface TweetListItemProps {
 export const TweetListItem = ({ tweet, refetch }: TweetListItemProps) => {
   // refetchはとりあえず残したいけど今は使わない。エラーだけ外したかった
   const navigate = useNavigate();
-  console.log(tweet.user.display_id);
   const likeTweet = async (e: React.MouseEvent) => {
-    console.log(tweet.id);
     e.stopPropagation();
     const res = await serverFetch(`/api/like`, {
       method: "POST",

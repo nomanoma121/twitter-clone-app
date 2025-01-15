@@ -153,13 +153,16 @@ func (h *TweetHandler) GetTimelineTweets(c echo.Context) error {
 	log.Println(retweetCountMap)
 	log.Println(replyCountMap)
 
+	// tweetからreply_idのあるものを除外
+	for i := 0; i < len(tweets); i++ {
+		if tweets[i].ReplyID != nil {
+			tweets = append(tweets[:i], tweets[i+1:]...)
+		}
+	}
+
 	// レスポンス用の構造体に変換
 	res := make([]GetTimelineTweetsResponse, len(tweets))
 	for i, tweet := range tweets {
-		// リプライの場合はスキップ
-		if tweet.ReplyID != nil {
-			continue
-		}
 		retweet := (*GetTimelineTweetsResponseRetweet)(nil)
 		if tweet.Retweet != nil {
 			retweet = &GetTimelineTweetsResponseRetweet{

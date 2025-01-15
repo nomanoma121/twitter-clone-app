@@ -9,8 +9,8 @@ interface TweetListProps {
 export const TweetList = ({ tweets, refetch }: TweetListProps) => {
   return (
     <div>
-      {tweets.map((tweet) => (
-        <TweetListItem key={tweet.id} tweet={tweet} refetch={refetch} />
+      {tweets.map((tweet, index) => (
+        <TweetListItem key={tweet.id * (index + 1)} tweet={tweet} refetch={refetch} />
       ))}
     </div>
   );

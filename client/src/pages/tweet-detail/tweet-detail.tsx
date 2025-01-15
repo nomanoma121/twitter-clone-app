@@ -13,6 +13,7 @@ export const TweetDetail = () => {
   const path = window.location.pathname;
   const tweetId = path.split("/")[3];
   const { tweets, fetchTweets } = useTweets(`/api/tweets/${tweetId}/replies`);
+  console.log(tweets);
 
   useEffect(() => {
     const fetchTweet = async () => {
