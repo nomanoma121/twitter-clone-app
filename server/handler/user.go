@@ -53,33 +53,25 @@ type UserData struct {
 }
 
 func (h *UserHandler) GetUser(c echo.Context) error {
-	id := c.Param("id")
+	display_id := c.Param("id")
 
 	var user UserData
 	// TODO: なんか冗長な気がするからあとでリファクタリングする
 	err := h.db.Get(&user, `
-		SELECT user_profiles.user_id, 
-					user_profiles.name, 
-					user_profiles.display_id, 
-					user_profiles.icon_url, 
-					user_profiles.header_url, 
-					user_profiles.profile, 
-					COALESCE(follower_counts, 0) AS follower_counts, 
-					COALESCE(followee_counts, 0) AS followee_counts, 
-					user_profiles.created_at
+		SELECT user_profiles.user_id, user_profiles.name, user_profiles.display_id, user_profiles.icon_url, user_profiles.header_url, user_profiles.profile, follower_counts, followee_counts, user_profiles.created_at
 		FROM user_profiles
 		LEFT JOIN (
-				SELECT followee_id, COUNT(follower_id) AS follower_counts
-				FROM follows
-				GROUP BY followee_id
+			SELECT followee_id, COUNT(follower_id) AS follower_counts
+			FROM follows
+			GROUP BY followee_id
 		) AS followers ON user_profiles.user_id = followers.followee_id
 		LEFT JOIN (
-				SELECT follower_id, COUNT(followee_id) AS followee_counts
-				FROM follows
-				GROUP BY follower_id
+			SELECT follower_id, COUNT(followee_id) AS followee_counts
+			FROM follows
+			GROUP BY follower_id
 		) AS followees ON user_profiles.user_id = followees.follower_id
-		WHERE user_profiles.user_id = ?
-`, id)
+		WHERE user_profiles.display_id = ?
+	`, display_id)
 
 	if err != nil {
 		log.Println(err)
