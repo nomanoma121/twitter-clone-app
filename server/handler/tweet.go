@@ -406,7 +406,7 @@ func (h *TweetHandler) GetTweetByID(c echo.Context) error {
 	for _, count := range likeCounts {
 		likeCountMap[count.TweetID] = count.Count
 	}
-	
+
 	// リツイート数と返信数をカウント
 	var retweetCountMap = map[int]int{}
 	var replyCountMap = map[int]int{}

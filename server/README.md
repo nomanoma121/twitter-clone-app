@@ -134,18 +134,18 @@
 ```
 
 ### いいね
-`POST api/tweet/:id/like`
+`POST api/like`
 
 ```json
 {
-  "user_id": 4,
+  "tweet_id": 3,
 }
 ```
 
-`DELETE api/tweet/:id/like`
+`DELETE api/like`
 
 ```json
 {
-  "user_id": 4,
+  "tweet_id": 4,
 }
 ```
