@@ -554,8 +554,6 @@ func (h *TweetHandler) CreateTweet(c echo.Context) error {
 		return c.JSON(400, map[string]string{"message": "Bad Request"})
 	}
 
-	log.Printf("req: %#v\n", req.Content)
-
 	_, err := h.db.Exec("INSERT INTO tweets (user_id, content) VALUES (?, ?)", userID, req.Content)
 	if err != nil {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
