@@ -1,4 +1,3 @@
-import { useParams } from "react-router";
 import { TweetList } from "../../../../components/tweet-list"
 import { useTweets } from "../../../../hooks/use-tweets";
 

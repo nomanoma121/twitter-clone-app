@@ -43,32 +43,32 @@ var userProfiles = []InsertUserProfile{
 		UserID:    1,
 		Name:      "user1",
 		DisplayID: "user1",
-		IconURL:   "https://example.com/icon1.png",
-		HeaderURL: "https://example.com/header1.png",
+		IconURL:   "http://localhost:5173/public/default-icon.jpeg",
+		HeaderURL: "http://example.com/header1.png",
 		Profile:   "profile1",
 	},
 	{
 		UserID:    2,
 		Name:      "user2",
 		DisplayID: "user2",
-		IconURL:   "https://example.com/icon2.png",
-		HeaderURL: "https://example.com/header2.png",
+		IconURL:   "http://localhost:5173/public/default-icon.jpeg",
+		HeaderURL: "http://example.com/header2.png",
 		Profile:   "profile2",
 	},
 	{
 		UserID:    3,
 		Name:      "user3",
 		DisplayID: "user3",
-		IconURL:   "https://example.com/icon3.png",
-		HeaderURL: "https://example.com/header3.png",
+		IconURL:   "http://localhost:5173/public/default-icon.jpeg",
+		HeaderURL: "http://example.com/header3.png",
 		Profile:   "profile3",
 	},
 	{
 		UserID:    4,
 		Name:      "user4",
 		DisplayID: "user4",
-		IconURL:   "https://example.com/icon4.png",
-		HeaderURL: "https://example.com/header4.png",
+		IconURL:   "http://localhost:5173/public/default-icon.jpeg",
+		HeaderURL: "http://example.com/header4.png",
 		Profile:   "profile4",
 	},
 }
@@ -137,11 +137,11 @@ type InsertTweetImage struct {
 var tweetImages = []InsertTweetImage{
 	{
 		TweetID: 1,
-		URL:     "https://example.com/image1.png",
+		URL:     "http://localhost:5173/public/default-icon.jpeg",
 	},
 	{
 		TweetID: 2,
-		URL:     "https://example.com/image2.png",
+		URL:     "http://localhost:5173/public/default-icon.jpeg",
 	},
 }
 

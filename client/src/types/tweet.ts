@@ -13,6 +13,7 @@ export type TTweet = {
             id: number
             name: string
             display_id: string
+            icon_url: string
         }
         content: string
         interactions: {
