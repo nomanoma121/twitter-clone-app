@@ -62,7 +62,7 @@ export const TweetListItem = ({ tweet, refetch }: TweetListItemProps) => {
       <div className="TweetListItem__interactions" style={{ display: "flex" }}>
         <p>RT: {tweet.interactions.retweet_count}</p>
         <p>返信: {tweet.interactions.reply_count}</p>
-        <div onClick= {(e) => likeTweet(e)} style={{ backgroundColor: "pink", zIndex: "9999999"}}>いいね: {tweet.interactions.like_count}</div>
+        <div onClick= {(e) => likeTweet(e)}>いいね: {tweet.interactions.like_count}</div>
       </div>
       <p>{tweet.created_at}</p>
     </div>
