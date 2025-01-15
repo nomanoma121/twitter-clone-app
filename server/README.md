@@ -134,18 +134,17 @@
 ```
 
 ### いいね
-`POST api/like`
+`PUT api/like/:id`
 
 ```json
 {
-  "tweet_id": 3,
+  "liked": false,
 }
 ```
 
-`DELETE api/like`
-
+`GET api/like/:id`
 ```json
 {
-  "tweet_id": 4,
+  "like": false,
 }
 ```
