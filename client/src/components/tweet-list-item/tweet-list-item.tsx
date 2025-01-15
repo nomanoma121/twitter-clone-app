@@ -41,7 +41,10 @@ export const TweetListItem = ({ tweet, refetch }: TweetListItemProps) => {
         <p>{tweet.content}</p>
       </div>
       {tweet.retweet && (
-        <div className="TweetListItem__retweet" style={{ border: "1px solid blue", margin: "10px" }}>
+        <div className="TweetListItem__retweet" style={{ border: "1px solid blue", margin: "10px" }} onClick={(e) => {
+          e.stopPropagation();
+          navigate(`/${tweet.retweet.user.display_id}/status/${tweet.retweet.id}`);
+          }}>
           <div className="TweetListItem__retweet__user">
             <p>{tweet.retweet.user.name}</p>
             <p>@{tweet.retweet.user.display_id}</p>

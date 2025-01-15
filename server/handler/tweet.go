@@ -53,6 +53,7 @@ type GetTimelineTweetsResponseInteractions struct {
 	ReplyCount   int `json:"reply_count"`
 }
 
+// TODO: Userがいいねしているかどうかをboolで返す
 type GetTimelineTweetsResponse struct {
 	ID           int                                   `json:"id"`
 	User         GetTimelineTweetsResponseUser         `json:"user"`
@@ -66,12 +67,11 @@ type GetTimelineTweetsResponse struct {
 // HACK: コードが冗長なのでリファクタリングする
 func (h *TweetHandler) GetTimelineTweets(c echo.Context) error {
 	var tweets []model.Tweet
-	// TweetとUserをJOINして取得,replyは除外
+	// TweetとUserをJOINして取得
 	err := h.db.Select(&tweets, `
 		SELECT tweets.*, user_profiles.user_id as "user.id", user_profiles.name as "user.name", user_profiles.display_id as "user.display_id", user_profiles.icon_url as "user.icon_url"
 		FROM tweets
 		JOIN user_profiles ON tweets.user_id = user_profiles.user_id
-		WHERE tweets.reply_id IS NULL
 	`)
 	if err != nil {
 		return h.handleError(c, err)
@@ -140,6 +140,7 @@ func (h *TweetHandler) GetTimelineTweets(c echo.Context) error {
 	var replyCountMap = map[int]int{}
 
 	for _, tweet := range tweets {
+		log.Printf("reply_id: %v\n", tweet.ReplyID)
 		if tweet.RetweetID != nil {
 			retweetCountMap[*tweet.RetweetID]++
 		}
@@ -155,6 +156,10 @@ func (h *TweetHandler) GetTimelineTweets(c echo.Context) error {
 	// レスポンス用の構造体に変換
 	res := make([]GetTimelineTweetsResponse, len(tweets))
 	for i, tweet := range tweets {
+		// リプライの場合はスキップ
+		if tweet.ReplyID != nil {
+			continue
+		}
 		retweet := (*GetTimelineTweetsResponseRetweet)(nil)
 		if tweet.Retweet != nil {
 			retweet = &GetTimelineTweetsResponseRetweet{

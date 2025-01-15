@@ -26,6 +26,8 @@ export const TweetDetail = () => {
     fetchTweet();
   }, [tweetId]);
 
+  if (!user) return null;
+
   return (
     <div className="TweetDetail">
       <div className="TweetDetail__tweet">
