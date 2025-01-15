@@ -351,13 +351,14 @@ func (h *TweetHandler) GetFollowTweets(c echo.Context) error {
 
 type GetTweetByIDResponseUser = GetTimelineTweetsResponseUser
 type GetTweetByIDResponseInteractions = GetTimelineTweetsResponseInteractions
-
+type GetTweetByIDResponseRetweet = GetTimelineTweetsResponseRetweet
 type GetTweetByIDResponse struct {
-	ID           int       `json:"id"`
-	User     GetTweetByIDResponseUser `json:"user"`
-	Content      string    `json:"content"`
+	ID           int                              `json:"id"`
+	User         GetTweetByIDResponseUser         `json:"user"`
+	Content      *string                          `json:"content"`
+	Retweet      *GetTweetByIDResponseRetweet     `json:"retweet"`
 	Interactions GetTweetByIDResponseInteractions `json:"interactions"`
-	CreatedAt    time.Time `json:"created_at"`
+	CreatedAt    time.Time                        `json:"created_at"`
 }
 
 func (h *TweetHandler) GetTweetByID(c echo.Context) error {
@@ -374,28 +375,46 @@ func (h *TweetHandler) GetTweetByID(c echo.Context) error {
 		if errors.Is(err, sql.ErrNoRows) {
 			return c.JSON(404, map[string]string{"message": "Not Found"})
 		}
-		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+		return h.handleError(c, err)
+	}
+
+	var retweet *model.Tweet
+	if tweet.RetweetID != nil {
+		err = h.db.Get(&retweet, `
+			SELECT tweets.*, user_profiles.user_id as "user.id", user_profiles.name as "user.name", user_profiles.display_id as "user.display_id", user_profiles.icon_url as "user.icon_url"
+			FROM tweets
+			JOIN user_profiles ON tweets.user_id = user_profiles.user_id
+			WHERE tweets.id = ?
+		`, *tweet.RetweetID)
+		if err != nil {
+			return h.handleError(c, err)
+		}
 	}
 
 	// いいね数を取得
-	var likeCount int
-	err = h.db.Get(&likeCount, "SELECT COUNT(*) FROM likes WHERE tweet_id = ?", tweetID)
+	var likeCounts []model.CountResult
+	err = h.db.Select(&likeCounts, `
+		SELECT tweet_id, COUNT(*) as count
+		FROM likes
+		GROUP BY tweet_id
+	`)
 	if err != nil {
 		return h.handleError(c, err)
 	}
 
-	// リツイート数を取得
-	var retweetCount int
-	err = h.db.Get(&retweetCount, "SELECT COUNT(*) FROM tweets WHERE retweet_id = ?", tweetID)
-	if err != nil {
-		return h.handleError(c, err)
+	likeCountMap := map[int]int{}
+	for _, count := range likeCounts {
+		likeCountMap[count.TweetID] = count.Count
 	}
 
-	// リプライ数を取得
-	var replyCount int
-	err = h.db.Get(&replyCount, "SELECT COUNT(*) FROM tweets WHERE reply_id = ?", tweetID)
-	if err != nil {
-		return h.handleError(c, err)
+	// リツイート数と返信数をカウント
+	var retweetCountMap = map[int]int{}
+	var replyCountMap = map[int]int{}
+	if retweet != nil {
+		retweetCountMap[*tweet.RetweetID]++
+	}
+	if tweet.ReplyID != nil {
+		replyCountMap[*tweet.ReplyID]++
 	}
 
 	res := GetTweetByIDResponse{
@@ -406,14 +425,34 @@ func (h *TweetHandler) GetTweetByID(c echo.Context) error {
 			DisplayID: tweet.User.DisplayID,
 			IconURL:   tweet.User.IconURL,
 		},
-		Content: tweet.Content,
-		Interactions: GetTweetByIDResponseInteractions{
-			LikeCount:    likeCount,
-			RetweetCount: retweetCount,
-			ReplyCount:   replyCount,
-		},
-		CreatedAt: tweet.CreatedAt,
+		Content:      &tweet.Content,
+		Retweet:      (*GetTweetByIDResponseRetweet)(nil),
+		Interactions: GetTweetByIDResponseInteractions{},
+		CreatedAt:    tweet.CreatedAt,
 	}
+
+	if retweet != nil {
+		res.Retweet = &GetTweetByIDResponseRetweet{
+			ID: retweet.ID,
+			User: GetTweetByIDResponseUser{
+				ID:        retweet.User.ID,
+				Name:      retweet.User.Name,
+				DisplayID: retweet.User.DisplayID,
+				IconURL:   retweet.User.IconURL,
+			},
+			Content: retweet.Content,
+			Interactions: GetTweetByIDResponseInteractions{
+				LikeCount:    likeCountMap[*tweet.RetweetID],
+				RetweetCount: retweetCountMap[*tweet.RetweetID],
+				ReplyCount:   replyCountMap[*tweet.RetweetID],
+			},
+			CreatedAt: retweet.CreatedAt,
+		}
+	}
+
+	res.Interactions.LikeCount = likeCountMap[tweet.ID]
+	res.Interactions.RetweetCount = retweetCountMap[tweet.ID]
+	res.Interactions.ReplyCount = replyCountMap[tweet.ID]
 
 	return c.JSON(200, res)
 }
@@ -422,11 +461,11 @@ type GetTweetReplyResponseUser = GetTimelineTweetsResponseUser
 type GetTweetReplyResponseInteractions = GetTimelineTweetsResponseInteractions
 
 type GetTweetReplyResponse struct {
-	ID           int       `json:"id"`
-	User     GetTweetReplyResponseUser `json:"user"`
-	Content      string    `json:"content"`
+	ID           int                               `json:"id"`
+	User         GetTweetReplyResponseUser         `json:"user"`
+	Content      string                            `json:"content"`
 	Interactions GetTweetReplyResponseInteractions `json:"interactions"`
-	CreatedAt    time.Time `json:"created_at"`
+	CreatedAt    time.Time                         `json:"created_at"`
 }
 
 func (h *TweetHandler) GetTweetReplies(c echo.Context) error {
