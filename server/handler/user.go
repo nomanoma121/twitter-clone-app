@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"server/model"
+	"time"
 
 	"github.com/go-playground/validator"
 	"github.com/jmoiron/sqlx"
@@ -24,6 +25,83 @@ func (h *UserHandler) Register(g *echo.Group) {
 	g.POST("/users/follow", h.Follow)
 	g.GET("/users/followers", h.GetFollowers)
 	g.GET("/users/followees", h.GetFollowees)
+	g.GET("/users/:id", h.GetUser)
+}
+
+type GetUserResponse struct {
+	ID             int    `json:"id"`
+	Name           string `json:"name"`
+	DisplayID      string `json:"display_id"`
+	IconURL        string `json:"icon_url"`
+	HeaderURL      string `json:"header_url"`
+	Profile        string `json:"profile"`
+	FollowerCounts int    `json:"follower_counts"`
+	FolloweeCounts int    `json:"followee_counts"`
+	CreatedAt      string `json:"created_at"`
+}
+
+type UserData struct {
+	ID             int       `db:"user_id"`
+	Name           string    `db:"name"`
+	DisplayID      string    `db:"display_id"`
+	IconURL        string    `db:"icon_url"`
+	HeaderURL      string    `db:"header_url"`
+	Profile        string    `db:"profile"`
+	FollowerCounts int       `db:"follower_counts"`
+	FolloweeCounts int       `db:"followee_counts"`
+	CreatedAt      time.Time `db:"created_at"`
+}
+
+func (h *UserHandler) GetUser(c echo.Context) error {
+	id := c.Param("id")
+
+	var user UserData
+	// TODO: なんか冗長な気がするからあとでリファクタリングする
+	err := h.db.Get(&user, `
+		SELECT user_profiles.user_id, 
+					user_profiles.name, 
+					user_profiles.display_id, 
+					user_profiles.icon_url, 
+					user_profiles.header_url, 
+					user_profiles.profile, 
+					COALESCE(follower_counts, 0) AS follower_counts, 
+					COALESCE(followee_counts, 0) AS followee_counts, 
+					user_profiles.created_at
+		FROM user_profiles
+		LEFT JOIN (
+				SELECT followee_id, COUNT(follower_id) AS follower_counts
+				FROM follows
+				GROUP BY followee_id
+		) AS followers ON user_profiles.user_id = followers.followee_id
+		LEFT JOIN (
+				SELECT follower_id, COUNT(followee_id) AS followee_counts
+				FROM follows
+				GROUP BY follower_id
+		) AS followees ON user_profiles.user_id = followees.follower_id
+		WHERE user_profiles.user_id = ?
+`, id)
+
+	if err != nil {
+		log.Println(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.JSON(404, map[string]string{"message": "User not found"})
+		}
+		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+	}
+
+	res := GetUserResponse{
+		ID:             user.ID,
+		Name:           user.Name,
+		DisplayID:      user.DisplayID,
+		IconURL:        user.IconURL,
+		HeaderURL:      user.HeaderURL,
+		Profile:        user.Profile,
+		FollowerCounts: user.FollowerCounts,
+		FolloweeCounts: user.FolloweeCounts,
+		CreatedAt:      user.CreatedAt.Format(time.RFC3339),
+	}
+
+	return c.JSON(200, res)
 }
 
 type FollowRequest struct {
@@ -55,8 +133,8 @@ func (h *UserHandler) Follow(c echo.Context) error {
 }
 
 type GetFollowersResponse struct {
-	ID    int    `json:"id"`
-	Name  string `json:"name"`
+	ID        int    `json:"id"`
+	Name      string `json:"name"`
 	DisplayID string `json:"display_id"`
 }
 
@@ -82,8 +160,8 @@ func (h *UserHandler) GetFollowers(c echo.Context) error {
 	res := make([]GetFollowersResponse, len(followers))
 	for i, follower := range followers {
 		res[i] = GetFollowersResponse{
-			ID:    follower.ID,
-			Name:  follower.Name,
+			ID:        follower.ID,
+			Name:      follower.Name,
 			DisplayID: follower.DisplayID,
 		}
 	}
@@ -92,9 +170,9 @@ func (h *UserHandler) GetFollowers(c echo.Context) error {
 }
 
 type GetFolloweesResponse struct {
-	ID    int    `json:"id"`
+	ID        int    `json:"id"`
 	DisplayID string `json:"display_id"`
-	Name  string `json:"name"`
+	Name      string `json:"name"`
 }
 
 func (h *UserHandler) GetFollowees(c echo.Context) error {
@@ -119,8 +197,8 @@ func (h *UserHandler) GetFollowees(c echo.Context) error {
 	res := make([]GetFolloweesResponse, len(followees))
 	for i, followee := range followees {
 		res[i] = GetFolloweesResponse{
-			ID:    followee.ID,
-			Name:  followee.Name,
+			ID:        followee.ID,
+			Name:      followee.Name,
 			DisplayID: followee.DisplayID,
 		}
 	}

@@ -162,8 +162,8 @@
   "icon_image": "...",
   "header_image": "...",
   "profile": "Hello, World! My name is fuga.",
-  "followers": 4,
-  "followee": 5,
+  "follower_counts": 4,
+  "followee_counts": 5,
   "created_at": "...",
 }
 ```
