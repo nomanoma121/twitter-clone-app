@@ -26,7 +26,7 @@ func (h *TweetHandler) Register(g *echo.Group) {
 	g.GET("/tweets/follow", h.GetFollowTweets)
 	g.GET("/tweet/:id", h.GetTweetByID)
 	g.GET("/tweets/:id/replies", h.GetTweetReplies)
-	// g.GET("/users/:display_id/tweets", h.GetUserTweets)
+	g.GET("/users/:display_id/tweets", h.GetUserTweets)
 	g.POST("/tweet", h.CreateTweet)
 	g.POST("/tweet/:id/retweet", h.CreateRetweet)
 	g.POST("/tweet/:id/reply", h.CreateRetweet)
@@ -541,10 +541,152 @@ func (h *TweetHandler) GetTweetReplies(c echo.Context) error {
 	return c.JSON(200, res)
 }
 
-// TODO: ユーザーのツイートを取得する
-// func (h *TweetHandler) GetUserTweets(c echo.Context) error {
+type GetUserTweetsResponseUser = GetTimelineTweetsResponseUser
+type GetUserTweetsResponseInteractions = GetTimelineTweetsResponseInteractions
+type GetUserTweetsResponseRetweet = GetTimelineTweetsResponseRetweet
 
-// }
+type GetUserTweetsResponse struct {
+	ID           int                              `json:"id"`
+	User         GetUserTweetsResponseUser         `json:"user"`
+	Content      string                           `json:"content"`
+	Retweet      *GetUserTweetsResponseRetweet     `json:"retweet"`
+	Interactions GetUserTweetsResponseInteractions `json:"interactions"`
+	CreatedAt    time.Time                        `json:"created_at"`
+}
+
+func (h *TweetHandler) GetUserTweets(c echo.Context) error {
+	displayID := c.Param("display_id")
+
+	var user model.UserProfile
+	err := h.db.Get(&user, "SELECT * FROM user_profiles WHERE display_id = ?", displayID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.JSON(404, map[string]string{"message": "Not Found"})
+		}
+		return h.handleError(c, err)
+	}
+
+	var tweets []model.Tweet
+	err = h.db.Select(&tweets, `
+		SELECT tweets.*, user_profiles.user_id as "user.id", user_profiles.name as "user.name", user_profiles.display_id as "user.display_id", user_profiles.icon_url as "user.icon_url"
+		FROM tweets
+		JOIN user_profiles ON tweets.user_id = user_profiles.user_id
+		WHERE tweets.user_id = ?
+	`, user.ID)
+	if err != nil {
+		return h.handleError(c, err)
+	}
+
+	var retweets []model.Tweet
+	var retweetIDs []int
+	for _, tweet := range tweets {
+		if tweet.RetweetID != nil {
+			retweetIDs = append(retweetIDs, *tweet.RetweetID)
+		}
+	}
+
+	if len(retweetIDs) > 0 {
+		query, args, err := sqlx.In(`
+			SELECT tweets.*, user_profiles.user_id as "user.id", user_profiles.name as "user.name", user_profiles.display_id as "user.display_id", user_profiles.icon_url as "user.icon_url"
+			FROM tweets
+			JOIN user_profiles ON tweets.user_id = user_profiles.user_id
+			WHERE tweets.id IN (?)
+		`, retweetIDs)
+		if err != nil {
+			return h.handleError(c, err)
+		}
+
+		query = h.db.Rebind(query)
+		err = h.db.Select(&retweets, query, args...)
+		if err != nil {
+			return h.handleError(c, err)
+		}
+	}
+
+	var retweetMap = map[int]model.Tweet{}
+
+	for _, retweet := range retweets {
+		retweetMap[retweet.ID] = retweet
+	}
+
+	for i, tweet := range tweets {
+		if tweet.RetweetID != nil {
+			retweet, ok := retweetMap[*tweet.RetweetID]
+			if !ok {
+				return h.handleError(c, errors.New("retweet not found"))
+			}
+			tweets[i].Retweet = &retweet
+		}
+	}
+
+	var likeCounts []model.CountResult
+	err = h.db.Select(&likeCounts, `
+		SELECT tweet_id, COUNT(*) as count
+		FROM likes
+		GROUP BY tweet_id
+	`)
+	if err != nil {
+		return h.handleError(c, err)
+	}
+
+	likeCountMap := map[int]int{}
+	for _, count := range likeCounts {
+		likeCountMap[count.TweetID] = count.Count
+	}
+
+	var retweetCountMap = map[int]int{}
+	var replyCountMap = map[int]int{}
+	for _, tweet := range tweets {
+		if tweet.RetweetID != nil {
+			retweetCountMap[*tweet.RetweetID]++
+		}
+		if tweet.ReplyID != nil {
+			replyCountMap[*tweet.ReplyID]++
+		}
+	}
+
+	res := make([]GetUserTweetsResponse, len(tweets))
+	for i, tweet := range tweets {
+		retweet := (*GetUserTweetsResponseRetweet)(nil)
+		if tweet.Retweet != nil {
+			retweet = &GetUserTweetsResponseRetweet{
+				ID: tweet.Retweet.ID,
+				User: GetUserTweetsResponseUser{
+					ID:        tweet.Retweet.User.ID,
+					Name:      tweet.Retweet.User.Name,
+					DisplayID: tweet.Retweet.User.DisplayID,
+					IconURL:   tweet.Retweet.User.IconURL,
+				},
+				Content: tweet.Retweet.Content,
+				Interactions: GetUserTweetsResponseInteractions{
+					LikeCount:    likeCountMap[tweet.Retweet.ID],
+					RetweetCount: retweetCountMap[tweet.Retweet.ID],
+					ReplyCount:   replyCountMap[tweet.Retweet.ID],
+				},
+				CreatedAt: tweet.Retweet.CreatedAt,
+			}
+		}
+		res[i] = GetUserTweetsResponse{
+			ID: tweet.ID,
+			User: GetUserTweetsResponseUser{
+				ID:        tweet.User.ID,
+				Name:      tweet.User.Name,
+				DisplayID: tweet.User.DisplayID,
+				IconURL:   tweet.User.IconURL,
+			},
+			Content: tweet.Content,
+			Retweet: retweet,
+			Interactions: GetUserTweetsResponseInteractions{
+				LikeCount:    likeCountMap[tweet.ID],
+				RetweetCount: retweetCountMap[tweet.ID],
+				ReplyCount:   replyCountMap[tweet.ID],
+			},
+			CreatedAt: tweet.CreatedAt,
+		}
+	}
+
+	return c.JSON(200, res)
+}
 
 type CreateTweetRequest struct {
 	Content string `json:"content" validate:"required"`
