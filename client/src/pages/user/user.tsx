@@ -8,7 +8,7 @@ export const User = () => {
   if (!user) return null;
 
   return (
-    <div className="User" style={{ border: "1px solid black" }}>
+    <div className="User">
       <UserProfile />
       <UserTweets />
     </div>
