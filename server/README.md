@@ -82,7 +82,7 @@
 ```
 
 ### あるツイートの詳細(リプライ)を取得
-`GET api/tweets/:id/replies
+`GET api/tweets/:id/replies`
 ```json
 {
   {
@@ -130,5 +130,22 @@
 {
   "content": "リプライ",
   "reply_id": 4,
+}
+```
+
+### いいね
+`POST api/tweet/:id/like`
+
+```json
+{
+  "user_id": 4,
+}
+```
+
+`DELETE api/tweet/:id/like`
+
+```json
+{
+  "user_id": 4,
 }
 ```
