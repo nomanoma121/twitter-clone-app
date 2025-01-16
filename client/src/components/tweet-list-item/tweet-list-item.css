@@ -21,6 +21,10 @@
   width: 100%;
 }
 
+.TweetListItem__content__wrapper {
+  width: 90%;
+}
+
 .TweetListItem__content__user__name {
   font-weight: bold;
   color: #0F1419;
@@ -33,10 +37,8 @@
   font-size: 15px;
 }
 
-.TweetListItem__content__text {
-  color: #0F1419;
-  font-size: 15px;
-  margin-top: 5px;
+.TweetListItem__content__content {
+  margin: 5px 0;
 }
 
 .TweetListItem__content__interactions {
@@ -44,7 +46,12 @@
   justify-content: space-between;
   margin-top: 10px;
   color: #536471;
+  width: 50%;
 }
+
+/* .TweetListItem__content__interactions__retweet, .TweetListItem__content__interactions__like, .TweetListItem__content__interactions__reply {
+  margin-right: 20px;
+} */
 
 .TweetListItem__content__interactions span {
   margin-left: 5px;

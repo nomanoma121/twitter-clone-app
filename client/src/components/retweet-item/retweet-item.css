@@ -1,34 +1,34 @@
 .RetweetItem {
-  display: flex;
-  border-bottom: 1px solid #EFF3F4;
-  border-left: 1px solid #EFF3F4;
-  border-right: 1px solid #EFF3F4;
-  padding: 0 10px;
+  border: 1px solid #EFF3F4;
+  border-radius: 10px;
+  padding: 10px;
+  width: 100%;
+  /* background-color: green; */
 }
 
 .RetweetItem:hover {
   background-color: #F9F9F9;
 }
 
-.RetweetItem__user__icon__wrapper {
-  height: 100%;
-  width: 40px;
+.RetweetItem__user__wrapper {
+  display: flex;
   margin-right: 8px;
+  width: 100%;
   /* background-color: green; */
 }
 
-.RetweetItem__content__user__wrapper {
+/* .RetweetItem__content__user__wrapper {
   width: 100%;
-}
+} */
 
-.RetweetItem__content__user__name {
+.RetweetItem__user__name {
   font-weight: bold;
   color: #0F1419;
   font-size: 15px;
   margin-right: 5px;
 }
 
-.RetweetItem__content__user__displayID, .RetweetItem__content__user__createdAt {
+.RetweetItem__user__displayID, .RetweetItem__user__createdAt {
   color: #536471;
   font-size: 15px;
 }
@@ -44,9 +44,14 @@
   justify-content: space-between;
   margin-top: 10px;
   color: #536471;
+  width: 50%;
 }
 
 .RetweetItem__content__interactions span {
   margin-left: 5px;
   font-size: 13px;
+}
+
+.RetweetItem__content {
+  margin: 5px 0;
 }

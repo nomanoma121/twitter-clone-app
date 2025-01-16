@@ -60,12 +60,8 @@ export const TweetListItem = ({ tweet, refetch }: TweetListItemProps) => {
             ・{displayTime(tweet.created_at)}
           </span>
         </div>
-        {tweet.retweet && (
-          <div>
-            <RetweetItem retweet={tweet.retweet} />
-          </div>
-        )}
         <div className="TweetListItem__content__content">{tweet.content}</div>
+        {tweet.retweet && <RetweetItem retweet={tweet.retweet} />}
         <div className="TweetListItem__content__interactions">
           <div className="TweetListItem__content__interactions__reply">
             <FaRegComment />
