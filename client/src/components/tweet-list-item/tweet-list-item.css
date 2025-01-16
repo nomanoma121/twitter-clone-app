@@ -1,0 +1,52 @@
+.TweetListItem {
+  display: flex;
+  border-bottom: 1px solid #EFF3F4;
+  border-left: 1px solid #EFF3F4;
+  border-right: 1px solid #EFF3F4;
+  padding: 0 10px;
+}
+
+.TweetListItem:hover {
+  background-color: #F9F9F9;
+}
+
+.TweetListItem__user__icon__wrapper {
+  height: 100%;
+  width: 40px;
+  margin-right: 8px;
+  /* background-color: green; */
+}
+
+.TweetListItem__content__user__wrapper {
+  width: 100%;
+}
+
+.TweetListItem__content__user__name {
+  font-weight: bold;
+  color: #0F1419;
+  font-size: 15px;
+  margin-right: 5px;
+}
+
+.TweetListItem__content__user__displayID, .TweetListItem__content__user__createdAt {
+  color: #536471;
+  font-size: 15px;
+}
+
+.TweetListItem__content__text {
+  color: #0F1419;
+  font-size: 15px;
+  margin-top: 5px;
+}
+
+.TweetListItem__content__interactions {
+  display: flex; 
+  justify-content: space-between;
+  margin-top: 10px;
+  color: #536471;
+}
+
+.TweetListItem__content__interactions span {
+  margin-left: 5px;
+  font-size: 13px;
+}
