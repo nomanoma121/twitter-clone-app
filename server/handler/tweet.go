@@ -730,6 +730,7 @@ func (h *TweetHandler) CreateRetweet(c echo.Context) error {
 	}
 
 	log.Printf("req: %#v\n", *req.Content)
+	log.Printf("retweetID: %v\n", retweetID)
 
 	var tweet model.Tweet
 	err := h.db.Get(&tweet, "SELECT * FROM tweets WHERE id = ?", retweetID)
@@ -738,10 +739,6 @@ func (h *TweetHandler) CreateRetweet(c echo.Context) error {
 			return c.JSON(404, map[string]string{"message": "Not Found"})
 		}
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
-	}
-
-	if tweet.RetweetID != nil {
-		return c.JSON(400, map[string]string{"message": "Bad Request"})
 	}
 
 	if req.Content == nil {
@@ -787,10 +784,6 @@ func (h *TweetHandler) CreateReply(c echo.Context) error {
 			return c.JSON(404, map[string]string{"message": "Not Found"})
 		}
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
-	}
-
-	if tweet.ReplyID != nil {
-		return c.JSON(400, map[string]string{"message": "Bad Request"})
 	}
 
 	_, err = h.db.Exec("INSERT INTO tweets (user_id, reply_id, content) VALUES (?, ?, ?)", userID, replyID, req.Content)
