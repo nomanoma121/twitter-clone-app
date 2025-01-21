@@ -2,9 +2,9 @@ import { useNavigate } from "react-router";
 import { TTweet } from "../../types/tweet";
 import { serverFetch } from "../../utils/fetch";
 import { UserIcon } from "../user-icon/user-icon";
-import { AiOutlineRetweet } from "react-icons/ai";
-import { FaRegComment } from "react-icons/fa6";
-import { BsHeart } from "react-icons/bs";
+import { LikeButton } from "../like-button/like-button";
+import { ReplyButton } from "../reply-button/reply-button";
+import { RetweetButton } from "../retweet-button/retweet-button";
 import React from "react";
 import "./tweet-list-item.css";
 import { displayTime } from "../../utils/display-time";
@@ -12,28 +12,28 @@ import RetweetItem from "../retweet-item";
 
 interface TweetListItemProps {
   tweet: TTweet;
-  refetch: () => void; // エラーしないようにnullを追加
+  refetch: () => void;
 }
 
 export const TweetListItem = ({ tweet, refetch }: TweetListItemProps) => {
   // refetchはとりあえず残したいけど今は使わない。エラーだけ外したかった
   const navigate = useNavigate();
-  const likeTweet = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const res = await serverFetch(`/api/like`, {
-      method: "POST",
-      body: JSON.stringify({
-        tweet_id: tweet.id,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    if (res.ok) {
-      refetch();
-      console.log("いいねしました");
-    }
-  };
+  // const likeTweet = async (e: React.MouseEvent) => {
+  //   e.stopPropagation();
+  //   const res = await serverFetch(`/api/like`, {
+  //     method: "POST",
+  //     body: JSON.stringify({
+  //       tweet_id: tweet.id,
+  //     }),
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //   });
+  //   if (res.ok) {
+  //     refetch();
+  //     console.log("いいねしました");
+  //   }
+  // };
 
   return (
     <div
@@ -63,21 +63,9 @@ export const TweetListItem = ({ tweet, refetch }: TweetListItemProps) => {
         <div className="TweetListItem__content__content">{tweet.content}</div>
         {tweet.retweet && <RetweetItem retweet={tweet.retweet} />}
         <div className="TweetListItem__content__interactions">
-          <div className="TweetListItem__content__interactions__reply">
-            <FaRegComment />
-            <span>{tweet.interactions.reply_count}</span>
-          </div>
-          <div className="TweetListItem__content__interactions__retweet">
-            <AiOutlineRetweet style={{ scale: "1.2" }} />
-            <span>{tweet.interactions.retweet_count}</span>
-          </div>
-          <div
-            className="TweetListItem__content__interactions__like"
-            onClick={likeTweet}
-          >
-            <BsHeart />
-            <span>{tweet.interactions.like_count}</span>
-          </div>
+          <ReplyButton tweet={tweet} className="TweetListItem__content__interactions__reply" />
+          <RetweetButton tweet={tweet} className="TweetListItem__content__interactions__retweet" />
+          <LikeButton tweet={tweet} className="TweetListItem__content__interactions__like" />
         </div>
       </div>
     </div>
