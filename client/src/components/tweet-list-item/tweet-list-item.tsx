@@ -5,7 +5,6 @@ import { UserIcon } from "../user-icon/user-icon";
 import { LikeButton } from "../like-button/like-button";
 import { ReplyButton } from "../reply-button/reply-button";
 import { RetweetButton } from "../retweet-button/retweet-button";
-import React from "react";
 import "./tweet-list-item.css";
 import { displayTime } from "../../utils/display-time";
 import RetweetItem from "../retweet-item";

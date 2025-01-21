@@ -29,6 +29,7 @@ export const Tweet = () => {
       });
 
       if (res.ok) {
+        window.history.back();
         return { message: "" };
       }
 
@@ -44,9 +45,8 @@ export const Tweet = () => {
   });
 
   if (!user) return null;
-
   return (
-    <div>
+    <div className="Tweet">
       <form action={submitAction} className="Tweet">
         <Input type="text" name="title" placeholder="What's happening?" />
         <Button type="submit">Tweet</Button>
