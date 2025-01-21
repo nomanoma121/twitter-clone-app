@@ -1,1 +1,1 @@
-export { Tweet as default } from "./tweet";
+export { Tweet } from "./tweet";

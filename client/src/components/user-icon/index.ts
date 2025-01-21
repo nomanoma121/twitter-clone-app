@@ -1,1 +1,1 @@
-export { UserIcon as default } from "./user-icon";
+export { UserIcon } from "./user-icon";

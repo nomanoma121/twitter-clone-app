@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import UserIcon from "../user-icon";
+import { UserIcon } from "../user-icon";
 import { displayTime } from "../../utils/display-time";
 import "./retweet-item.css";
 
