@@ -29,7 +29,7 @@ func (h *TweetHandler) Register(g *echo.Group) {
 	g.GET("/users/:display_id/tweets", h.GetUserTweets)
 	g.POST("/tweet", h.CreateTweet)
 	g.POST("/tweet/:id/retweet", h.CreateRetweet)
-	g.POST("/tweet/:id/reply", h.CreateRetweet)
+	g.POST("/tweet/:id/reply", h.CreateReply)
 }
 
 type GetTimelineTweetsResponseUser struct {

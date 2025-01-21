@@ -3,13 +3,18 @@ import { Button } from "../../components/button";
 import { Input } from "../../components/input";
 import { serverFetch } from "../../utils/fetch";
 import { useAuth } from "../../provider/auth";
+import { useLocation } from "react-router";
 
 type TweetFormStateType = {
   message: string;
 };
 
+type TweetType = "tweet" | "reply" | "retweet";
+
 export const Tweet = () => {
   const { user } = useAuth();
+  const location = useLocation();
+  const tweetType: TweetType = location.state?.tweet.type;
 
   const TweetAction = useCallback(
     async (
@@ -17,10 +22,26 @@ export const Tweet = () => {
       formData: FormData
     ): Promise<TweetFormStateType> => {
       const content = formData.get("title");
+      if (!content) {
+        return {
+          message: "Tweetの内容を入力してください。",
+        };
+      }
 
-      console.log(content);
+      let requestUrl;
+      if (tweetType === "tweet") {
+        requestUrl = "/api/tweet";
+      } else if (tweetType === "reply") {
+        requestUrl = `/api/tweet/${location.state?.tweet.id}/reply`;
+      } else if (tweetType === "retweet") {
+        requestUrl = `/api/tweet/${location.state?.tweet.id}/retweet`;
+      } else {
+        return {
+          message: "Tweetの投稿に失敗しました。",
+        };
+      }
 
-      const res = await serverFetch("/api/tweet", {
+      const res = await serverFetch(requestUrl, {
         method: "POST",
         body: JSON.stringify({ content }),
         headers: {

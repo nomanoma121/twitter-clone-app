@@ -119,7 +119,6 @@
 ```json
 {
   "content": "リツイート",
-  "retweet_id": 3,
 }
 ```
 
@@ -129,7 +128,6 @@
 ```json
 {
   "content": "リプライ",
-  "reply_id": 4,
 }
 ```
 
