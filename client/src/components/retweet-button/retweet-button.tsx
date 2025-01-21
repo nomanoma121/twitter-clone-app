@@ -17,10 +17,13 @@ export const RetweetButton = ({ tweet }: TTweet) => {
         },
       },
     });
-  }
-  
+  };
+
   return (
-    <div onClick={(e) => handleRetweet(e)} style={{ cursor: "pointer", zIndex: 999 }}>
+    <div
+      onClick={(e) => handleRetweet(e)}
+      style={{ cursor: "pointer", zIndex: 999 }}
+    >
       <AiOutlineRetweet style={{ scale: "1.2" }} />
       <span>{tweet.interactions.retweet_count}</span>
     </div>

@@ -22,11 +22,6 @@ export const Tweet = () => {
       formData: FormData
     ): Promise<TweetFormStateType> => {
       const content = formData.get("title");
-      if (!content) {
-        return {
-          message: "Tweetの内容を入力してください。",
-        };
-      }
 
       let requestUrl;
       if (tweetType === "tweet") {
