@@ -1,9 +1,6 @@
 import { useNavigate } from "react-router";
 import UserIcon from "../user-icon";
 import { displayTime } from "../../utils/display-time";
-import { FaRegComment } from "react-icons/fa6";
-import { AiOutlineRetweet } from "react-icons/ai";
-import { BsHeart } from "react-icons/bs";
 import "./retweet-item.css";
 
 type RetweetItemProps = {
@@ -28,16 +25,20 @@ type RetweetItemProps = {
 export const RetweetItem = ({ retweet }: RetweetItemProps) => {
   const navigate = useNavigate();
   return (
-    <div className="RetweetItem">
+    <div
+      className="RetweetItem"
+      onClick={(e) => {
+        navigate(`/retweet.display_id/status/${retweet.id}`);
+        e.stopPropagation();
+      }}
+    >
       <div className="RetweetItem__user__wrapper">
         <UserIcon
           user={retweet.user}
           size={24}
           onClick={() => navigate(`/${retweet.user.display_id}`)}
         />
-        <span className="RetweetItem__user__name">
-          {retweet.user.name}
-        </span>
+        <span className="RetweetItem__user__name">{retweet.user.name}</span>
         <span className="RetweetItem__user__displayID">
           @{retweet.user.display_id}
         </span>
@@ -46,23 +47,6 @@ export const RetweetItem = ({ retweet }: RetweetItemProps) => {
         </span>
       </div>
       <div className="RetweetItem__content">{retweet.content}</div>
-      <div className="RetweetItem__content__interactions">
-        <div className="RetweetItem__content__interactions__reply">
-          <FaRegComment />
-          <span>{retweet.interactions.reply_count}</span>
-        </div>
-        <div className="RetweetItem__content__interactions__retweet">
-          <AiOutlineRetweet style={{ scale: "1.2" }} />
-          <span>{retweet.interactions.retweet_count}</span>
-        </div>
-        <div
-          className="RetweetItem__content__interactions__like"
-          // onClick={likeTweet}
-        >
-          <BsHeart />
-          <span>{retweet.interactions.like_count}</span>
-        </div>
-      </div>
     </div>
   );
 };
