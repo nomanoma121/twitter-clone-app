@@ -1,0 +1,9 @@
+.ReplyButton span {
+  margin-left: 5px;
+  font-size: 13px;
+}
+
+.ReplyButton {
+  cursor: pointer;
+  z-index: 999;
+}

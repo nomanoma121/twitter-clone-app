@@ -4,6 +4,10 @@
   padding: 16px;
 }
 
+.TweetDetail__tweet {
+  width: 100%;
+}
+
 .TweetDetail__user {
   display: flex;
   align-items: center;
@@ -24,4 +28,26 @@
 .TweetDetail__user__displayID {
   color: #536471;
   font-size: 15px;
+}
+
+.TweetDetail__date {
+  color: #536471;
+  font-size: 15px;
+  margin-top: 10px;
+}
+
+.TweetDetail__interactions__wrapper {
+  margin-top: 10px;
+  color: #536471;
+  border-top: 1px solid #eff3f4;
+  border-bottom: 1px solid #eff3f4;
+  padding: 10px 0;
+  width: 100%;
+}
+
+.TweetDetail__interactions {
+  display: flex;
+  justify-content: space-between;
+  width: 50%;
+  margin-left: 10px;
 }

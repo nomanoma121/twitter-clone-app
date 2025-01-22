@@ -1,0 +1,9 @@
+.LikeButton span {
+  margin-left:  5px;
+  font-size: 13px;
+}
+
+.likeButton {
+  cursor: pointer;
+  z-index: 999;
+}

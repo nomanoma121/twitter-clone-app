@@ -8,6 +8,9 @@ import RetweetItem from "../../components/retweet-item";
 import { useNavigate } from "react-router";
 import { TTweet } from "../../types/tweet";
 import "./tweet-detail.css";
+import { LikeButton } from "../../components/like-button";
+import { RetweetButton } from "../../components/retweet-button";
+import { ReplyButton } from "../../components/reply-button";
 
 export const TweetDetail = () => {
   const [tweet, setTweet] = useState<TTweet | null>(null);
@@ -34,6 +37,13 @@ export const TweetDetail = () => {
 
   if (!user) return null;
 
+  // 午前6:50・2025年1月1日のような形式で返す関数
+  const formatDate = (date: string) => {
+    const d = new Date(date);
+    // 午前か午後化の形式にする
+    return `${d.getHours() > 12 ? "午後" : "午前" } ${d.getHours() % 12}:${d.getMinutes()}・${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+  };
+
   return (
     <div className="TweetDetail">
       <div className="TweetDetail__tweet">
@@ -55,6 +65,16 @@ export const TweetDetail = () => {
         <div className="TweetDetail__content__wrapper">
           <div className="TweetDetail__content__content">{tweet.content}</div>
           {tweet.retweet && <RetweetItem retweet={tweet.retweet} />}
+        </div>
+        <div className="TweetDetail__date">
+          <span>{formatDate(tweet.created_at)}</span>
+        </div>
+        <div className="TweetDetail__interactions__wrapper">
+          <div className="TweetDetail__interactions">
+          <ReplyButton tweet={tweet} className="TweetDetail__interactions__reply" />
+          <RetweetButton tweet={tweet} className="TweetDetail__interactions__retweet" />
+          <LikeButton tweet={tweet} className="TweetDetail__interactions__like" />
+          </div>
         </div>
       </div>
       <div>

@@ -2,6 +2,7 @@ import { TTweet } from "../../types";
 import { FaRegComment } from "react-icons/fa";
 import { useNavigate } from "react-router";
 import { useLocation } from "react-router";
+import "./reply-button.css";
 
 export const ReplyButton = ({ tweet }: TTweet) => {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ export const ReplyButton = ({ tweet }: TTweet) => {
   return (
     <div
       onClick={(e) => handleReply(e)}
-      style={{ cursor: "pointer", zIndex: 999 }}
+      className="ReplyButton"
     >
       <FaRegComment />
       <span>{tweet.interactions.reply_count}</span>
