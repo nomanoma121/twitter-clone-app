@@ -17,7 +17,14 @@ export const Home = () => {
       <p>ようこそ、{user.name}さん。</p>
       <button
         onClick={() =>
-          navigate("/compose/tweet", { state: { background: location } })
+          navigate("/compose/tweet", {
+            state: {
+              background: location,
+              tweet: {
+                type: "tweet",
+              },
+            },
+          })
         }
       >
         ツイートする

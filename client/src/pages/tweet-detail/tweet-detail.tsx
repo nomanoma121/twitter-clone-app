@@ -103,7 +103,11 @@ export const TweetDetail = () => {
             </div>
           </div>
           <div>
-            <TweetList tweets={tweets} refetch={fetchTweets} />
+            {!tweets ? (
+              <div>loading...</div>
+            ) : (
+              <TweetList tweets={tweets} refetch={fetchTweets} />
+            )}
           </div>
         </>
       )}

@@ -61,6 +61,7 @@ export const Tweet = () => {
   });
 
   if (!user) return null;
+  console.log("tweet")
   return (
     <div className="Tweet">
       <form action={submitAction} className="Tweet">
