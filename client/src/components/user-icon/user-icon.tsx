@@ -9,7 +9,6 @@ type UserIconProps = {
     icon_url: string;
   },
   size: number;
-  onClick: () => void;
 }
 
 export const UserIcon = ({ user, size }: UserIconProps) => {

@@ -44,7 +44,6 @@ export const TweetListItem = ({ tweet, refetch }: TweetListItemProps) => {
         <UserIcon
           user={tweet.user}
           size={40}
-          onClick={() => navigate(`/${tweet.user.display_id}`)}
         />
       </div>
       <div className="TweetListItem__content__wrapper">

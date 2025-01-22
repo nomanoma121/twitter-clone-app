@@ -7,7 +7,7 @@ export const UserTweets = () => {
   const displayID = path.split("/")[1];
   const { tweets, refetch } = useTweets(`/api/users/${displayID}/tweets`);
   return (
-    <div style={{ margin: "20px" }}>
+    <div>
       <TweetList tweets={tweets} refetch={refetch} />
     </div>
   )

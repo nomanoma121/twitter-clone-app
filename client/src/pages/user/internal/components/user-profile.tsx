@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { serverFetch } from "../../../../utils/fetch";
-import { Button } from "../../../../components/button";
+import { SlCalender } from "react-icons/sl";
+import { UserIcon } from "../../../../components/user-icon";
+import "./user-profile.css";
 
 type User = {
   id: number;
@@ -40,24 +42,35 @@ export const UserProfile = () => {
     fetchUser();
   }, []);
 
+  const fomatDate = (date: string) => {
+    const d = new Date(date);
+    return `${d.getFullYear()}年${d.getMonth()+1}月`;
+  }
+
   return (
-    <div className="User" style={{ border: "1px solid black" }}>
-      <div>
-        <div className="User__user" style={{ display: "flex" }}>
-          <img src={user.icon_url} alt="header" height={100} width={100} />
-          <h1>{user.name}</h1>
-          <h1>@{user.display_id}</h1>
+    <div className="User__profile">
+      <img
+        src="http://localhost:5173/public/default-header.jpeg"
+        alt="header"
+        className="User__profile__header"
+      />
+      <div className="User__profile__icon">
+        <UserIcon user={user} size={120} />
+      </div>
+      <div className="User__profile__info">
+        <div className="User__profile__follow">
+          <button>フォローする</button>
         </div>
-        <Button>Follow</Button>
-        <div>
-          <p>{user.profile}</p>
+        <div className="User__profile__name">{user.name}</div>
+        <div className="User__profile__display-id">@{user.display_id}</div>
+        <div className="User__profile__profile">{user.profile}</div>
+        <div className="User__profile__created-at">
+          <SlCalender />
+          {" "+fomatDate(user.created_at)}からTwitterを利用しています
         </div>
-        <div className="User__interactions" style={{ display: "flex" }}>
-          <p>Follower: {user.follower_counts}</p>
-          <p>Following: {user.followee_counts}</p>
-        </div>
-        <div>
-          <p>Joined {user.created_at}</p>
+        <div className="User__profile__counts">
+          <div>{user.followee_counts}<span>フォロー中</span></div>
+          <div>{user.follower_counts}<span>フォロワー</span></div>
         </div>
       </div>
     </div>
