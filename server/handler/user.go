@@ -29,27 +29,27 @@ func (h *UserHandler) Register(g *echo.Group) {
 }
 
 type GetUserResponse struct {
-	ID             int    `json:"id"`
-	Name           string `json:"name"`
-	DisplayID      string `json:"display_id"`
-	IconURL        string `json:"icon_url"`
-	HeaderURL      string `json:"header_url"`
-	Profile        string `json:"profile"`
-	FollowerCounts int    `json:"follower_counts"`
-	FolloweeCounts int    `json:"followee_counts"`
-	CreatedAt      string `json:"created_at"`
+	ID             int       `json:"id"`
+	Name           string    `json:"name"`
+	DisplayID      string    `json:"display_id"`
+	IconURL        string    `json:"icon_url"`
+	HeaderURL      string    `json:"header_url"`
+	Profile        string    `json:"profile"`
+	FollowerCounts int       `json:"follower_counts"`
+	FolloweeCounts int       `json:"followee_counts"`
+	CreatedAt      time.Time `json:"created_at"`
 }
 
 type UserData struct {
-	ID             int       `db:"user_id"`
-	Name           string    `db:"name"`
-	DisplayID      string    `db:"display_id"`
-	IconURL        string    `db:"icon_url"`
-	HeaderURL      string    `db:"header_url"`
-	Profile        string    `db:"profile"`
-	FollowerCounts int       `db:"follower_counts"`
-	FolloweeCounts int       `db:"followee_counts"`
-	CreatedAt      time.Time `db:"created_at"`
+	ID             int            `db:"user_id"`
+	Name           string         `db:"name"`
+	DisplayID      string         `db:"display_id"`
+	IconURL        string         `db:"icon_url"`
+	HeaderURL      string         `db:"header_url"`
+	Profile        string         `db:"profile"`
+	FollowerCounts sql.NullInt64  `db:"follower_counts"`
+	FolloweeCounts sql.NullInt64  `db:"followee_counts"`
+	CreatedAt      time.Time      `db:"created_at"`
 }
 
 func (h *UserHandler) GetUser(c echo.Context) error {
@@ -88,9 +88,17 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 		IconURL:        user.IconURL,
 		HeaderURL:      user.HeaderURL,
 		Profile:        user.Profile,
-		FollowerCounts: user.FollowerCounts,
-		FolloweeCounts: user.FolloweeCounts,
-		CreatedAt:      user.CreatedAt.Format(time.RFC3339),
+		FollowerCounts: 0,
+		FolloweeCounts: 0,
+		CreatedAt:      user.CreatedAt,
+	}
+
+	if user.FollowerCounts.Valid {
+		res.FollowerCounts = int(user.FollowerCounts.Int64)
+	}
+
+	if user.FolloweeCounts.Valid {
+		res.FolloweeCounts = int(user.FolloweeCounts.Int64)
 	}
 
 	return c.JSON(200, res)
