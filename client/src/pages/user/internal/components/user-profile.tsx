@@ -47,15 +47,19 @@ export const UserProfile = () => {
     return `${d.getFullYear()}年${d.getMonth()+1}月`;
   }
 
+  console.log(user);
+
   return (
     <div className="User__profile">
       <img
-        src="http://localhost:5173/public/default-header.jpeg"
+        src={user.header_url}
         alt="header"
         className="User__profile__header"
       />
       <div className="User__profile__icon">
+      {/* <div style={{ scale: "1.30"}} > */}
         <UserIcon user={user} size={120} />
+        {/* </div> */}
       </div>
       <div className="User__profile__info">
         <div className="User__profile__follow">

@@ -12,20 +12,52 @@ type InsertUser struct {
 
 var users = []InsertUser{
 	{
-		Email:    "user1@example.com",
-		Password: "password1",
+		Email:    "john.doe@example.com",
+		Password: "password123",
 	},
 	{
-		Email:    "user2@example.com",
-		Password: "password2",
+		Email:    "jane.smith@example.com",
+		Password: "securepass",
 	},
 	{
-		Email:    "user3@example.com",
-		Password: "password3",
+		Email:    "alice.brown@example.com",
+		Password: "alice2023",
 	},
 	{
-		Email:    "user4@example.com",
-		Password: "password4",
+		Email:    "charlie.wilson@example.com",
+		Password: "wilson42",
+	},
+	{
+		Email:    "emily.jones@example.com",
+		Password: "emilyPass1",
+	},
+	{
+		Email:    "michael.johnson@example.com",
+		Password: "mikeSecure",
+	},
+	{
+		Email:    "olivia.taylor@example.com",
+		Password: "oliviaTay99",
+	},
+	{
+		Email:    "william.miller@example.com",
+		Password: "millerRocks",
+	},
+	{
+		Email:    "sophia.davis@example.com",
+		Password: "sophiaD",
+	},
+	{
+		Email:    "james.moore@example.com",
+		Password: "mooreJames",
+	},
+	{
+		Email:    "isabella.jackson@example.com",
+		Password: "jacksonBella",
+	},
+	{
+		Email:    "ethan.thomas@example.com",
+		Password: "thomasEthan",
 	},
 }
 
@@ -41,35 +73,99 @@ type InsertUserProfile struct {
 var userProfiles = []InsertUserProfile{
 	{
 		UserID:    1,
-		Name:      "user1",
-		DisplayID: "user1",
-		IconURL:   "http://localhost:5173/public/default-icon.jpeg",
-		HeaderURL: "http://example.com/header1.png",
-		Profile:   "profile1",
+		Name:      "John Doe",
+		DisplayID: "john_d",
+		IconURL:   "http://localhost:5173/public/images/icon/icon_1.png",
+		HeaderURL: "http://localhost:5173/public/images/header/header_1.jpg",
+		Profile:   "Loves coding and exploring new technologies.",
 	},
 	{
 		UserID:    2,
-		Name:      "user2",
-		DisplayID: "user2",
-		IconURL:   "http://localhost:5173/public/default-icon.jpeg",
-		HeaderURL: "http://example.com/header2.png",
-		Profile:   "profile2",
+		Name:      "Jane Smith",
+		DisplayID: "jane_s",
+		IconURL:   "http://localhost:5173/public/images/icon/icon_2.png",
+		HeaderURL: "http://localhost:5173/public/images/header/header_2.jpg",
+		Profile:   "Graphic designer with a passion for art.",
 	},
 	{
 		UserID:    3,
-		Name:      "user3",
-		DisplayID: "user3",
-		IconURL:   "http://localhost:5173/public/default-icon.jpeg",
-		HeaderURL: "http://example.com/header3.png",
-		Profile:   "profile3",
+		Name:      "Alice Brown",
+		DisplayID: "alice_b",
+		IconURL:   "http://localhost:5173/public/images/icon/icon_3.png",
+		HeaderURL: "http://localhost:5173/public/images/header/header_3.jpg",
+		Profile:   "Bookworm and coffee enthusiast.",
 	},
 	{
 		UserID:    4,
-		Name:      "user4",
-		DisplayID: "user4",
-		IconURL:   "http://localhost:5173/public/default-icon.jpeg",
-		HeaderURL: "http://example.com/header4.png",
-		Profile:   "profile4",
+		Name:      "Charlie Wilson",
+		DisplayID: "charlie_w",
+		IconURL:   "http://localhost:5173/public/images/icon/icon_4.png",
+		HeaderURL: "http://localhost:5173/public/images/header/header_4.jpg",
+		Profile:   "Travel blogger sharing adventures.",
+	},
+	{
+		UserID:    5,
+		Name:      "Emily Jones",
+		DisplayID: "emily_j",
+		IconURL:   "http://localhost:5173/public/images/icon/icon_5.png",
+		HeaderURL: "http://localhost:5173/public/images/header/header_5.jpg",
+		Profile:   "Photographer capturing moments.",
+	},
+	{
+		UserID:    6,
+		Name:      "Michael Johnson",
+		DisplayID: "mike_j",
+		IconURL:   "http://localhost:5173/public/images/icon/icon_6.png",
+		HeaderURL: "http://localhost:5173/public/images/header/header_6.jpg",
+		Profile:   "Tech geek and gamer.",
+	},
+	{
+		UserID:    7,
+		Name:      "Olivia Taylor",
+		DisplayID: "olivia_t",
+		IconURL:   "http://localhost:5173/public/images/icon/icon_7.png",
+		HeaderURL: "http://localhost:5173/public/images/header/header_7.jpg",
+		Profile:   "Fashion designer and trendsetter.",
+	},
+	{
+		UserID:    8,
+		Name:      "William Miller",
+		DisplayID: "will_m",
+		IconURL:   "http://localhost:5173/public/images/icon/icon_8.png",
+		HeaderURL: "http://localhost:5173/public/images/header/header_8.jpg",
+		Profile:   "Fitness coach helping others achieve goals.",
+	},
+	{
+		UserID:    9,
+		Name:      "Sophia Davis",
+		DisplayID: "sophia_d",
+		IconURL:   "http://localhost:5173/public/images/icon/icon_9.png",
+		HeaderURL: "http://localhost:5173/public/images/header/header_9.jpg",
+		Profile:   "Musician composing melodies.",
+	},
+	{
+		UserID:    10,
+		Name:      "James Moore",
+		DisplayID: "james_m",
+		IconURL:   "http://localhost:5173/public/images/icon/icon_10.png",
+		HeaderURL: "http://localhost:5173/public/images/header/header_10.jpg",
+		Profile:   "Entrepreneur building startups.",
+	},
+	{
+		UserID:    11,
+		Name:      "Isabella Jackson",
+		DisplayID: "bella_j",
+		IconURL:   "http://localhost:5173/public/images/icon/icon_11.png",
+		HeaderURL: "http://localhost:5173/public/images/header/header_11.jpg",
+		Profile:   "Chef creating unique recipes.",
+	},
+	{
+		UserID:    12,
+		Name:      "Ethan Thomas",
+		DisplayID: "ethan_t",
+		IconURL:   "http://localhost:5173/public/images/icon/icon_12.png",
+		HeaderURL: "http://localhost:5173/public/images/header/header_12.jpg",
+		Profile:   "Software developer specializing in AI.",
 	},
 }
 
@@ -78,14 +174,83 @@ type InsertTweet struct {
 	Content string
 }
 
+// var tweets = []InsertTweet{
+// 	{
+// 		UserID:  1,
+// 		Content: "tweet1",
+// 	},
+// 	{
+// 		UserID:  2,
+// 		Content: "tweet2",
+// 	},
+// }
+// 日本語でツイートのテストデータを20個作成してください。実際のツイートのような内容にしてほしいです。
+// 例：「今日はいい天気ですね。」
+
 var tweets = []InsertTweet{
 	{
 		UserID:  1,
-		Content: "tweet1",
+		Content: "今日はいい天気ですね。",
 	},
 	{
 		UserID:  2,
-		Content: "tweet2",
+		Content: "今日は雨が降っています。",
+	},
+	{
+		UserID:  3,
+		Content: "今日は暑いです。",
+	},
+	{
+		UserID:  4,
+		Content: "今日は寒いです。",
+	},
+	{
+		UserID:  5,
+		Content: "今日は曇りです。",
+	},
+	{
+		UserID:  6,
+		Content: "今日は雪が降っています。",
+	},
+	{
+		UserID:  7,
+		Content: "今日は風が強いです。",
+	},
+	{
+		UserID:  8,
+		Content: "今日は雨が降っています。",
+	},
+	{
+		UserID:  9,
+		Content: "今日は雨が降っています。",
+	},
+	{
+		UserID:  10,
+		Content: "今日は雨が降っています。",
+	},
+	{
+		UserID:  11,
+		Content: "今日は雨が降っています。",
+	},
+	{
+		UserID:  12,
+		Content: "今日は雨が降っています。",
+	},
+	{
+		UserID:  1,
+		Content: "今日は雨が降っています。",
+	},
+	{
+		UserID:  2,
+		Content: "今日は雨が降っています。",
+	},
+	{
+		UserID:  3,
+		Content: "今日は雨が降っています。",
+	},
+	{
+		UserID:  4,
+		Content: "今日は雨が降っています。",
 	},
 }
 
