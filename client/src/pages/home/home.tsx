@@ -4,8 +4,6 @@ import { useTweets } from "../../hooks/use-tweets";
 import { useLocation, useNavigate } from "react-router";
 
 export const Home = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
   const { user } = useAuth();
   const { tweets, fetchTweets } = useTweets("/api/tweets/timeline");
 
