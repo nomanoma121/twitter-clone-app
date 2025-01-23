@@ -13,22 +13,6 @@ export const Home = () => {
 
   return (
     <div className="Home">
-      <h1>タイムライン</h1>
-      <p>ようこそ、{user.name}さん。</p>
-      <button
-        onClick={() =>
-          navigate("/compose/tweet", {
-            state: {
-              background: location,
-              tweet: {
-                type: "tweet",
-              },
-            },
-          })
-        }
-      >
-        ツイートする
-      </button>
       <TweetList tweets={tweets} refetch={fetchTweets} />
     </div>
   );
