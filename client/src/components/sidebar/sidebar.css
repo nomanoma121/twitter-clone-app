@@ -1,8 +1,15 @@
 .Sidebar {
   display: flex;
   flex-direction: column;
-  background-color: #f9f9f9;
-  border-right: 1px solid #e1e8ed;
   width: 68px;
-  background-color: green;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.Sidebar__icon {
+  cursor: pointer;
+  padding: 12px;
+  scale: 1.7;
 }

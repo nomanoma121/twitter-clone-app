@@ -9,13 +9,27 @@ import { CiCircleMore } from "react-icons/ci";
 export const Sidebar = () => {
   return (
     <div className="Sidebar">
-      <FaTwitter />
+      <div className="Sidebar__icon">
+        <FaTwitter />
+      </div>
+      <div className="Sidebar__icon">
       <GoHomeFill />
-      <IoSearchOutline />
-      <PiBell />
-      <LuMail />
-      <FaRegUser />
-      <CiCircleMore />
+      </div>
+      <div className="Sidebar__icon">
+        <IoSearchOutline />
+      </div>
+      <div className="Sidebar__icon">
+        <PiBell />
+      </div>
+      <div className="Sidebar__icon">
+        <LuMail />
+      </div>
+      <div className="Sidebar__icon">
+        <FaRegUser />
+      </div>
+      <div className="Sidebar__icon">
+        <CiCircleMore />
+      </div>
     </div>
   )
 }
