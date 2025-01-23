@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { serverFetch } from "../../../../utils/fetch";
 import { SlCalender } from "react-icons/sl";
 import { UserIcon } from "../../../../components/user-icon";
+import { Button } from "../../../../components/button";
 import "./user-profile.css";
 
 type User = {
@@ -61,7 +62,7 @@ export const UserProfile = () => {
       </div>
       <div className="User__profile__info">
         <div className="User__profile__follow">
-          <button>フォローする</button>
+          <Button>フォロー</Button>
         </div>
         <div className="User__profile__name">{user.name}</div>
         <div className="User__profile__display-id">@{user.display_id}</div>
