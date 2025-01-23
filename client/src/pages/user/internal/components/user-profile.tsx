@@ -42,7 +42,7 @@ export const UserProfile = () => {
     fetchUser();
   }, []);
 
-  const fomatDate = (date: string) => {
+  const formatDate = (date: string) => {
     const d = new Date(date);
     return `${d.getFullYear()}年${d.getMonth()+1}月`;
   }
@@ -57,9 +57,7 @@ export const UserProfile = () => {
         className="User__profile__header"
       />
       <div className="User__profile__icon">
-      {/* <div style={{ scale: "1.30"}} > */}
         <UserIcon user={user} size={120} />
-        {/* </div> */}
       </div>
       <div className="User__profile__info">
         <div className="User__profile__follow">
@@ -70,7 +68,7 @@ export const UserProfile = () => {
         <div className="User__profile__profile">{user.profile}</div>
         <div className="User__profile__created-at">
           <SlCalender />
-          {" "+fomatDate(user.created_at)}からTwitterを利用しています
+          {" "+formatDate(user.created_at)}からTwitterを利用しています
         </div>
         <div className="User__profile__counts">
           <div>{user.followee_counts}<span>フォロー中</span></div>
