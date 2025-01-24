@@ -512,6 +512,7 @@ type GetTweetReplyResponse struct {
 
 func (h *TweetHandler) GetTweetReplies(c echo.Context) error {
 	tweetID := c.Param("id")
+	userID := c.Get("user_id").(int)
 
 	var tweets []model.Tweet
 	err := h.db.Select(&tweets, `
@@ -554,7 +555,7 @@ func (h *TweetHandler) GetTweetReplies(c echo.Context) error {
 
 	isLikedByUser := make([]bool, len(tweets))
 	for i, tweet := range tweets {
-		isLiked, err := h.isLiked(tweet.User.ID, tweet.ID)
+		isLiked, err := h.isLiked(userID, tweet.ID)
 		if err != nil {
 			return h.handleError(c, err)
 		}
@@ -601,6 +602,7 @@ type GetUserTweetsResponse struct {
 
 func (h *TweetHandler) GetUserTweets(c echo.Context) error {
 	displayID := c.Param("display_id")
+	userID := c.Get("user_id").(int)
 
 	var user model.UserProfile
 	err := h.db.Get(&user, "SELECT * FROM user_profiles WHERE display_id = ?", displayID)
@@ -692,7 +694,7 @@ func (h *TweetHandler) GetUserTweets(c echo.Context) error {
 
 	isLikedByUser := make([]bool, len(tweets))
 	for i, tweet := range tweets {
-		isLiked, err := h.isLiked(tweet.User.ID, tweet.ID)
+		isLiked, err := h.isLiked(userID, tweet.ID)
 		if err != nil {
 			return h.handleError(c, err)
 		}
