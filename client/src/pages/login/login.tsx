@@ -46,7 +46,7 @@ export const Login = () => {
         const data = await res.json();
         localStorage.setItem("token", data.token);
         setUser(data.user);
-        navigate("/todos");
+        navigate("/home");
         return { message: "" };
       }
 
