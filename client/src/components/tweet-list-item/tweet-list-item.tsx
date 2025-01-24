@@ -15,24 +15,7 @@ interface TweetListItemProps {
 }
 
 export const TweetListItem = ({ tweet, refetch }: TweetListItemProps) => {
-  // refetchはとりあえず残したいけど今は使わない。エラーだけ外したかった
   const navigate = useNavigate();
-  // const likeTweet = async (e: React.MouseEvent) => {
-  //   e.stopPropagation();
-  //   const res = await serverFetch(`/api/like`, {
-  //     method: "POST",
-  //     body: JSON.stringify({
-  //       tweet_id: tweet.id,
-  //     }),
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //   });
-  //   if (res.ok) {
-  //     refetch();
-  //     console.log("いいねしました");
-  //   }
-  // };
 
   return (
     <div
