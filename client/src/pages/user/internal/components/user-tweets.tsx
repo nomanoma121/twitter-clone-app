@@ -8,7 +8,7 @@ export const UserTweets = () => {
   const location = useLocation();
   const path = location.pathname
   const displayId = path.split("/")[1];
-  const { tweets, fetchTweets } = useTweets(`/api/tweets/${displayId}/tweets`);
+  const { tweets, fetchTweets } = useTweets(`/api/users/${displayId}/tweets`);
 
   useEffect(() => {
     fetchTweets();

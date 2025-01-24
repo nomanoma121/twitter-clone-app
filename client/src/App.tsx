@@ -38,10 +38,10 @@ function App() {
               }
             />
             <Route
-              path="/:displayId/status/:tweetId"
+              path="/:displayID/status/:tweetID"
               element={<TweetDetail />}
             />
-            <Route path="/:displayId" element={<User />} />
+            <Route path="/:displayID" element={<User />} />
           </Routes>
 
           {/* モーダル用のルート */}
