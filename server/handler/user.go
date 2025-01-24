@@ -38,6 +38,7 @@ type GetUserResponse struct {
 	Profile        string    `json:"profile"`
 	FollowerCounts int       `json:"follower_counts"`
 	FolloweeCounts int       `json:"followee_counts"`
+	FollowedByUser bool      `json:"followed_by_user"`
 	CreatedAt      time.Time `json:"created_at"`
 }
 
@@ -54,6 +55,7 @@ type UserData struct {
 }
 
 func (h *UserHandler) GetUser(c echo.Context) error {
+	userID := c.Get("user_id").(int)
 	display_id := c.Param("id")
 
 	var user UserData
@@ -82,6 +84,13 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
+	// あるユーザーがこのユーザーをフォローしているか
+	isFollowed, err := h.isFollowed(userID, user.ID)
+	if err != nil {
+		log.Println(err)
+		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+	}
+
 	res := GetUserResponse{
 		ID:             user.ID,
 		Name:           user.Name,
@@ -91,6 +100,7 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 		Profile:        user.Profile,
 		FollowerCounts: 0,
 		FolloweeCounts: 0,
+		FollowedByUser: isFollowed,
 		CreatedAt:      user.CreatedAt,
 	}
 
@@ -205,4 +215,14 @@ func (h *UserHandler) GetFollowees(c echo.Context) error {
 	}
 
 	return c.JSON(200, res)
+}
+
+func (h *UserHandler) isFollowed(followerID, followeeID int) (bool, error) {
+	var count int
+	err := h.db.Get(&count, "SELECT COUNT(*) FROM follows WHERE follower_id = ? AND followee_id = ?", followerID, followeeID)
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
 }

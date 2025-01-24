@@ -43,6 +43,9 @@ export const UserProfile = () => {
     fetchUser();
   }, []);
 
+  const handleFollow = async () => { 
+    const endpoint = user.
+
   const formatDate = (date: string) => {
     const d = new Date(date);
     return `${d.getFullYear()}年${d.getMonth()+1}月`;
@@ -62,7 +65,7 @@ export const UserProfile = () => {
       </div>
       <div className="User__profile__info">
         <div className="User__profile__follow">
-          <Button>フォロー</Button>
+          <Button onClick={}>フォロー</Button>
         </div>
         <div className="User__profile__name">{user.name}</div>
         <div className="User__profile__display-id">@{user.display_id}</div>
