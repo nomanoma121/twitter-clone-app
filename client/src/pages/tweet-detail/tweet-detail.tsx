@@ -24,15 +24,15 @@ export const TweetDetail = () => {
   const { tweets, fetchTweets } = useTweets(`/api/tweets/${tweetId}/replies`);
   console.log(tweets);
 
-  useEffect(() => {
-    const fetchTweet = async () => {
-      const res = await serverFetch(`/api/tweet/${tweetId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setTweet(data);
-      }
-    };
+  const fetchTweet = async () => {
+    const res = await serverFetch(`/api/tweet/${tweetId}`);
+    if (res.ok) {
+      const data = await res.json();
+      setTweet(data);
+    }
+  };
 
+  useEffect(() => {
     fetchTweet();
   }, [tweetId]);
 
@@ -92,6 +92,7 @@ export const TweetDetail = () => {
                 />
                 <LikeButton
                   tweet={tweet}
+                  refetch={fetchTweet}
                   className="TweetDetail__interactions__like"
                 />
               </div>
