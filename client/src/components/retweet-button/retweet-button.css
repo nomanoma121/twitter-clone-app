@@ -1,9 +1,31 @@
-.RetweetButton span {
-  margin-left: 5px;
-  font-size: 13px; 
-}
-
 .RetweetButton {
   cursor: pointer;
   z-index: 999;
+  display: flex;
+}
+
+.RetweetButton:hover {
+  /* 緑 */
+  color: rgb(23, 191, 99);
+}
+
+.RetweetButton span {
+  margin-left: -5px;
+  padding-top: 10px;
+  font-size: 13px; 
+}
+
+.RetweetIcon {
+  cursor: pointer;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.RetweetButton:hover .RetweetIcon {
+  background-color: rgb(23, 191, 99, 0.1);
+  border-radius: 50%;
 }

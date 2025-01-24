@@ -26,7 +26,9 @@ export const RetweetButton = ({ tweet }: TTweet) => {
       style={{ cursor: "pointer", zIndex: 999 }}
       className="RetweetButton"
     >
-      <AiOutlineRetweet style={{ scale: "1.2" }} />
+      <div className="RetweetIcon">
+        <AiOutlineRetweet style={{ scale: "1.2" }} />
+      </div>
       <span>{tweet.interactions.retweet_count}</span>
     </div>
   );

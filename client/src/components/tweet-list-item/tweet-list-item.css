@@ -3,7 +3,9 @@
   border-bottom: 1px solid #EFF3F4;
   border-left: 1px solid #EFF3F4;
   border-right: 1px solid #EFF3F4;
-  padding: 16px;
+  padding-left: 16px;
+  padding-top: 16px;
+  padding-right: 16px;
 }
 
 .TweetListItem:hover {
@@ -38,13 +40,12 @@
 }
 
 .TweetListItem__content__content {
-  margin: 5px 0;
+  margin-top: 5px;
 }
 
 .TweetListItem__content__interactions {
   display: flex; 
   justify-content: space-between;
-  margin-top: 10px;
   color: #536471;
   width: 50%;
 }

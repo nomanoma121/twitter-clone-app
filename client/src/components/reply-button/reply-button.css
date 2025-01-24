@@ -1,9 +1,31 @@
-.ReplyButton span {
-  margin-left: 5px;
-  font-size: 13px;
-}
-
 .ReplyButton {
   cursor: pointer;
   z-index: 999;
+  display: flex;
+}
+
+.ReplyButton:hover {
+  color: #1da1f2;
+}
+
+/* spanをホバーしたらReplyIconのホバー表示もしたい */
+.ReplyButton:hover .ReplyIcon {
+  background-color: rgb(29, 161, 242, 0.1);
+  border-radius: 50%;
+}
+
+.ReplyButton span {
+  margin-left: -5px;
+  padding-top: 10px;
+  font-size: 13px;
+}
+
+.ReplyIcon {
+  cursor: pointer;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

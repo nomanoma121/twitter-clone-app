@@ -24,7 +24,9 @@ export const ReplyButton = ({ tweet }: TTweet) => {
       onClick={(e) => handleReply(e)}
       className="ReplyButton"
     >
-      <FaRegComment />
+      <div className="ReplyIcon">
+        <FaRegComment />
+      </div>
       <span>{tweet.interactions.reply_count}</span>
     </div>
   );
