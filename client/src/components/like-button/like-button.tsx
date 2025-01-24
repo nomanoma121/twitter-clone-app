@@ -1,5 +1,6 @@
 import { TTweet } from "../../types";
 import { BsHeart } from "react-icons/bs";
+import { BsHeartFill } from "react-icons/bs";
 import "./like-button.css";
 
 export const LikeButton = ({ tweet }: TTweet) => {
@@ -15,7 +16,11 @@ export const LikeButton = ({ tweet }: TTweet) => {
       className="LikeButton"
     >
       <div className="LikeIcon">
-        <BsHeart />
+        {tweet.liked_by_user ? (
+          <BsHeartFill color="rgb(249, 24, 128)" />
+        ) : (
+          <BsHeart />
+        )}
       </div>
       <span>{tweet.interactions.like_count}</span>
     </div>
