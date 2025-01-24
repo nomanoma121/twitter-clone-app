@@ -1,7 +1,6 @@
 import { useAuth } from "../../provider/auth";
 import { TweetList } from "../../components/tweet-list";
 import { useTweets } from "../../hooks/use-tweets";
-import { useLocation, useNavigate } from "react-router";
 
 export const Home = () => {
   const { user } = useAuth();
