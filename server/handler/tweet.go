@@ -40,11 +40,12 @@ type GetTimelineTweetsResponseUser struct {
 }
 
 type GetTimelineTweetsResponseRetweet struct {
-	ID           int                                   `json:"id"`
-	User         GetTimelineTweetsResponseUser         `json:"user"`
-	Content      string                                `json:"content"`
-	Interactions GetTimelineTweetsResponseInteractions `json:"interactions"`
-	CreatedAt    time.Time                             `json:"created_at"`
+	ID            int                                   `json:"id"`
+	User          GetTimelineTweetsResponseUser         `json:"user"`
+	Content       string                                `json:"content"`
+	Interactions  GetTimelineTweetsResponseInteractions `json:"interactions"`
+	Liked_By_User bool                                  `json:"liked_by_user"`
+	CreatedAt     time.Time                             `json:"created_at"`
 }
 
 type GetTimelineTweetsResponseInteractions struct {
@@ -55,17 +56,19 @@ type GetTimelineTweetsResponseInteractions struct {
 
 // TODO: Userがいいねしているかどうかをboolで返す
 type GetTimelineTweetsResponse struct {
-	ID           int                                   `json:"id"`
-	User         GetTimelineTweetsResponseUser         `json:"user"`
-	Content      string                                `json:"content"`
-	Retweet      *GetTimelineTweetsResponseRetweet     `json:"retweet"`
-	Interactions GetTimelineTweetsResponseInteractions `json:"interactions"`
-	CreatedAt    time.Time                             `json:"created_at"`
+	ID            int                                   `json:"id"`
+	User          GetTimelineTweetsResponseUser         `json:"user"`
+	Content       string                                `json:"content"`
+	Retweet       *GetTimelineTweetsResponseRetweet     `json:"retweet"`
+	Interactions  GetTimelineTweetsResponseInteractions `json:"interactions"`
+	Liked_By_User bool                                  `json:"liked_by_user"`
+	CreatedAt     time.Time                             `json:"created_at"`
 }
 
 // TODO: cursor, limitを使ってページネーションする
 // HACK: コードが冗長なのでリファクタリングする
 func (h *TweetHandler) GetTimelineTweets(c echo.Context) error {
+	userID := c.Get("user_id").(int)
 	var tweets []model.Tweet
 	// TweetとUserをJOINして取得
 	err := h.db.Select(&tweets, `
@@ -128,6 +131,15 @@ func (h *TweetHandler) GetTimelineTweets(c echo.Context) error {
 	`)
 	if err != nil {
 		return h.handleError(c, err)
+	}
+
+	var isLikedByUser = make([]bool, len(tweets))
+	for i, tweet := range tweets {
+		isLiked, err := h.isLiked(userID, tweet.ID)
+		if err != nil {
+			return h.handleError(c, err)
+		}
+		isLikedByUser[i] = isLiked
 	}
 
 	// マップに変換
@@ -197,7 +209,8 @@ func (h *TweetHandler) GetTimelineTweets(c echo.Context) error {
 				RetweetCount: retweetCountMap[tweet.ID],
 				ReplyCount:   replyCountMap[tweet.ID],
 			},
-			CreatedAt: tweet.CreatedAt,
+			Liked_By_User: isLikedByUser[i],
+			CreatedAt:     tweet.CreatedAt,
 		}
 	}
 
@@ -313,6 +326,16 @@ func (h *TweetHandler) GetFollowTweets(c echo.Context) error {
 		}
 	}
 
+	// いいねしているかどうかを取得
+	var isLikedByUser = make([]bool, len(tweets))
+	for i, tweet := range tweets {
+		isLiked, err := h.isLiked(userID, tweet.ID)
+		if err != nil {
+			return h.handleError(c, err)
+		}
+		isLikedByUser[i] = isLiked
+	}
+
 	// レスポンスデータの作成
 	res := make([]GetFollowTweetsResponse, len(tweets))
 	for i, tweet := range tweets {
@@ -350,7 +373,8 @@ func (h *TweetHandler) GetFollowTweets(c echo.Context) error {
 				RetweetCount: retweetCountMap[tweet.ID],
 				ReplyCount:   replyCountMap[tweet.ID],
 			},
-			CreatedAt: tweet.CreatedAt,
+			Liked_By_User: isLikedByUser[i],
+			CreatedAt:     tweet.CreatedAt,
 		}
 	}
 
@@ -361,15 +385,17 @@ type GetTweetByIDResponseUser = GetTimelineTweetsResponseUser
 type GetTweetByIDResponseInteractions = GetTimelineTweetsResponseInteractions
 type GetTweetByIDResponseRetweet = GetTimelineTweetsResponseRetweet
 type GetTweetByIDResponse struct {
-	ID           int                              `json:"id"`
-	User         GetTweetByIDResponseUser         `json:"user"`
-	Content      string                           `json:"content"`
-	Retweet      *GetTweetByIDResponseRetweet     `json:"retweet"`
-	Interactions GetTweetByIDResponseInteractions `json:"interactions"`
-	CreatedAt    time.Time                        `json:"created_at"`
+	ID            int                              `json:"id"`
+	User          GetTweetByIDResponseUser         `json:"user"`
+	Content       string                           `json:"content"`
+	Retweet       *GetTweetByIDResponseRetweet     `json:"retweet"`
+	Interactions  GetTweetByIDResponseInteractions `json:"interactions"`
+	isLikedByUser bool                             `json:"liked_by_user"`
+	CreatedAt     time.Time                        `json:"created_at"`
 }
 
 func (h *TweetHandler) GetTweetByID(c echo.Context) error {
+	userID := c.Get("user_id").(int)
 	tweetID := c.Param("id")
 
 	var tweet model.Tweet
@@ -425,6 +451,12 @@ func (h *TweetHandler) GetTweetByID(c echo.Context) error {
 		replyCountMap[*tweet.ReplyID]++
 	}
 
+	// いいねしいいねしているかどうかを取得
+	isLiked, err := h.isLiked(userID, tweet.ID)
+	if err != nil {
+		return h.handleError(c, err)
+	}
+
 	res := GetTweetByIDResponse{
 		ID: tweet.ID,
 		User: GetTweetByIDResponseUser{
@@ -440,7 +472,8 @@ func (h *TweetHandler) GetTweetByID(c echo.Context) error {
 			RetweetCount: retweetCountMap[tweet.ID],
 			ReplyCount:   replyCountMap[tweet.ID],
 		},
-		CreatedAt: tweet.CreatedAt,
+		isLikedByUser: isLiked,
+		CreatedAt:     tweet.CreatedAt,
 	}
 
 	if tweet.RetweetID != nil {
@@ -469,11 +502,12 @@ type GetTweetReplyResponseUser = GetTimelineTweetsResponseUser
 type GetTweetReplyResponseInteractions = GetTimelineTweetsResponseInteractions
 
 type GetTweetReplyResponse struct {
-	ID           int                               `json:"id"`
-	User         GetTweetReplyResponseUser         `json:"user"`
-	Content      string                            `json:"content"`
-	Interactions GetTweetReplyResponseInteractions `json:"interactions"`
-	CreatedAt    time.Time                         `json:"created_at"`
+	ID            int                               `json:"id"`
+	User          GetTweetReplyResponseUser         `json:"user"`
+	Content       string                            `json:"content"`
+	Interactions  GetTweetReplyResponseInteractions `json:"interactions"`
+	isLikedByUser bool                              `json:"liked_by_user"`
+	CreatedAt     time.Time                         `json:"created_at"`
 }
 
 func (h *TweetHandler) GetTweetReplies(c echo.Context) error {
@@ -518,6 +552,15 @@ func (h *TweetHandler) GetTweetReplies(c echo.Context) error {
 		}
 	}
 
+	isLikedByUser := make([]bool, len(tweets))
+	for i, tweet := range tweets {
+		isLiked, err := h.isLiked(tweet.User.ID, tweet.ID)
+		if err != nil {
+			return h.handleError(c, err)
+		}
+		isLikedByUser[i] = isLiked
+	}
+
 	res := make([]GetTweetReplyResponse, len(tweets))
 	for i, tweet := range tweets {
 		res[i] = GetTweetReplyResponse{
@@ -534,7 +577,8 @@ func (h *TweetHandler) GetTweetReplies(c echo.Context) error {
 				RetweetCount: retweetCountMap[tweet.ID],
 				ReplyCount:   replyCountMap[tweet.ID],
 			},
-			CreatedAt: tweet.CreatedAt,
+			isLikedByUser: isLikedByUser[i],
+			CreatedAt:     tweet.CreatedAt,
 		}
 	}
 
@@ -546,12 +590,13 @@ type GetUserTweetsResponseInteractions = GetTimelineTweetsResponseInteractions
 type GetUserTweetsResponseRetweet = GetTimelineTweetsResponseRetweet
 
 type GetUserTweetsResponse struct {
-	ID           int                              `json:"id"`
-	User         GetUserTweetsResponseUser         `json:"user"`
-	Content      string                           `json:"content"`
-	Retweet      *GetUserTweetsResponseRetweet     `json:"retweet"`
-	Interactions GetUserTweetsResponseInteractions `json:"interactions"`
-	CreatedAt    time.Time                        `json:"created_at"`
+	ID            int                               `json:"id"`
+	User          GetUserTweetsResponseUser         `json:"user"`
+	Content       string                            `json:"content"`
+	Retweet       *GetUserTweetsResponseRetweet     `json:"retweet"`
+	Interactions  GetUserTweetsResponseInteractions `json:"interactions"`
+	IsLikedByUser bool                              `json:"is_liked_by_user"`
+	CreatedAt     time.Time                         `json:"created_at"`
 }
 
 func (h *TweetHandler) GetUserTweets(c echo.Context) error {
@@ -645,6 +690,15 @@ func (h *TweetHandler) GetUserTweets(c echo.Context) error {
 		}
 	}
 
+	isLikedByUser := make([]bool, len(tweets))
+	for i, tweet := range tweets {
+		isLiked, err := h.isLiked(tweet.User.ID, tweet.ID)
+		if err != nil {
+			return h.handleError(c, err)
+		}
+		isLikedByUser[i] = isLiked
+	}
+
 	res := make([]GetUserTweetsResponse, len(tweets))
 	for i, tweet := range tweets {
 		retweet := (*GetUserTweetsResponseRetweet)(nil)
@@ -663,7 +717,7 @@ func (h *TweetHandler) GetUserTweets(c echo.Context) error {
 					RetweetCount: retweetCountMap[tweet.Retweet.ID],
 					ReplyCount:   replyCountMap[tweet.Retweet.ID],
 				},
-				CreatedAt: tweet.Retweet.CreatedAt,
+				CreatedAt:     tweet.Retweet.CreatedAt,
 			}
 		}
 		res[i] = GetUserTweetsResponse{
@@ -681,6 +735,7 @@ func (h *TweetHandler) GetUserTweets(c echo.Context) error {
 				RetweetCount: retweetCountMap[tweet.ID],
 				ReplyCount:   replyCountMap[tweet.ID],
 			},
+			IsLikedByUser: isLikedByUser[i],
 			CreatedAt: tweet.CreatedAt,
 		}
 	}
@@ -797,4 +852,14 @@ func (h *TweetHandler) CreateReply(c echo.Context) error {
 func (h *TweetHandler) handleError(c echo.Context, err error) error {
 	log.Println(err)
 	return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+}
+
+// あるユーザーがあるツイートをいいねしているかどうかを返す
+func (h *TweetHandler) isLiked(userID int, tweetID int) (bool, error) {
+	var count int
+	err := h.db.Get(&count, "SELECT COUNT(*) FROM likes WHERE user_id = ? AND tweet_id = ?", userID, tweetID)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
