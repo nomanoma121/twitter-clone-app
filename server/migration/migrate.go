@@ -87,6 +87,7 @@ func Migrate(db *sqlx.DB) error {
 			tweet_id INT NOT NULL,
 			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+			UNIQUE(user_id, tweet_id)
 		);
 	`)
 	if err != nil {
