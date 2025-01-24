@@ -390,7 +390,7 @@ type GetTweetByIDResponse struct {
 	Content       string                           `json:"content"`
 	Retweet       *GetTweetByIDResponseRetweet     `json:"retweet"`
 	Interactions  GetTweetByIDResponseInteractions `json:"interactions"`
-	isLikedByUser bool                             `json:"liked_by_user"`
+	IsLikedByUser bool                             `json:"liked_by_user"`
 	CreatedAt     time.Time                        `json:"created_at"`
 }
 
@@ -472,7 +472,7 @@ func (h *TweetHandler) GetTweetByID(c echo.Context) error {
 			RetweetCount: retweetCountMap[tweet.ID],
 			ReplyCount:   replyCountMap[tweet.ID],
 		},
-		isLikedByUser: isLiked,
+		IsLikedByUser: isLiked,
 		CreatedAt:     tweet.CreatedAt,
 	}
 
