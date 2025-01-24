@@ -12,19 +12,25 @@ import { LikeButton } from "../../components/like-button";
 import { RetweetButton } from "../../components/retweet-button";
 import { ReplyButton } from "../../components/reply-button";
 import { Button } from "../../components/button";
+import { useLocation } from "react-router";
 
 export const TweetDetail = () => {
   const [tweet, setTweet] = useState<TTweet | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // 現在のパスからツイートIDを取得 /:username/status/:tweetId
-  const path = window.location.pathname;
+  const path = location.pathname;
   const tweetId = path.split("/")[3];
   const { tweets, fetchTweets } = useTweets(`/api/tweets/${tweetId}/replies`);
-  console.log(tweets);
 
-  const fetchTweet = async () => {
+  useEffect(() => {
+    fetchTweets();
+    fetchMainTweet();
+  }, [location]);
+
+  const fetchMainTweet = async () => {
     const res = await serverFetch(`/api/tweet/${tweetId}`);
     if (res.ok) {
       const data = await res.json();
@@ -33,7 +39,7 @@ export const TweetDetail = () => {
   };
 
   useEffect(() => {
-    fetchTweet();
+    fetchMainTweet();
   }, [tweetId]);
 
   if (!user) return null;
@@ -92,7 +98,7 @@ export const TweetDetail = () => {
                 />
                 <LikeButton
                   tweet={tweet}
-                  refetch={fetchTweet}
+                  refetch={fetchMainTweet}
                   className="TweetDetail__interactions__like"
                 />
               </div>

@@ -47,10 +47,6 @@ export const useTweets = (url: string) => {
     }
   };
 
-  useEffect(() => {
-    fetchTweets();
-  }, []);
-
   return {
     tweets,
     fetchTweets,

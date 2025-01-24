@@ -4,6 +4,7 @@ import { Input } from "../../components/input";
 import { serverFetch } from "../../utils/fetch";
 import { useAuth } from "../../provider/auth";
 import { useLocation } from "react-router";
+import { useNavigate} from "react-router";
 
 type TweetFormStateType = {
   message: string;
@@ -14,6 +15,7 @@ type TweetType = "tweet" | "reply" | "retweet";
 export const Tweet = () => {
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const tweetType: TweetType = location.state?.tweet.type;
 
   const TweetAction = useCallback(
@@ -45,7 +47,7 @@ export const Tweet = () => {
       });
 
       if (res.ok) {
-        window.history.back();
+        navigate(-1);
         return { message: "" };
       }
 

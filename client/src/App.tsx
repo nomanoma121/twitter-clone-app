@@ -6,7 +6,6 @@ import { Container } from "./components/container/container";
 import { AuthGuard } from "./components/auth-guard";
 import { TweetDetail } from "./pages/tweet-detail";
 import { Modal } from "./components/modal";
-import { WiDayCloudy } from "react-icons/wi";
 
 const Top = lazy(() => import("./pages/top"));
 const Login = lazy(() => import("./pages/login"));

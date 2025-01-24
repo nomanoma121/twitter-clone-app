@@ -1,14 +1,22 @@
+import { useEffect } from "react";
 import { TweetList } from "../../../../components/tweet-list"
 import { useTweets } from "../../../../hooks/use-tweets";
+import { useLocation } from "react-router";
 
 
 export const UserTweets = () => {
-  const path = window.location.pathname;
-  const displayID = path.split("/")[1];
-  const { tweets, refetch } = useTweets(`/api/users/${displayID}/tweets`);
+  const location = useLocation();
+  const path = location.pathname
+  const displayId = path.split("/")[1];
+  const { tweets, fetchTweets } = useTweets(`/api/tweets/${displayId}/tweets`);
+
+  useEffect(() => {
+    fetchTweets();
+  }, [location]);
+
   return (
     <div>
-      <TweetList tweets={tweets} refetch={refetch} />
+      <TweetList tweets={tweets} refetch={fetchTweets} />
     </div>
   )
 }

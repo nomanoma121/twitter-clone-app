@@ -44,8 +44,8 @@ export const TweetListItem = ({ tweet, refetch }: TweetListItemProps) => {
         <div className="TweetListItem__content__content">{tweet.content}</div>
         {tweet.retweet && <RetweetItem retweet={tweet.retweet} />}
         <div className="TweetListItem__content__interactions">
-          <ReplyButton tweet={tweet} refetch={refetch} className="TweetListItem__content__interactions__reply" />
-          <RetweetButton tweet={tweet} refetch={refetch} className="TweetListItem__content__interactions__retweet" />
+          <ReplyButton tweet={tweet} className="TweetListItem__content__interactions__reply" />
+          <RetweetButton tweet={tweet} className="TweetListItem__content__interactions__retweet" />
           <LikeButton tweet={tweet} refetch={refetch} className="TweetListItem__content__interactions__like" />
         </div>
       </div>

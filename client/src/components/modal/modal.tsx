@@ -1,8 +1,10 @@
 import "./modal.css";
+import { useNavigate } from "react-router";
+
 export const Modal = ({ children }) => { 
-  console.log("Modal");
+  const navigate = useNavigate();
   return (
-    <div className="modal-overlay" onClick={() => window.history.back()}>
+    <div className="modal-overlay" onClick={() => navigate(-1)}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         {children}
       </div>
