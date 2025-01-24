@@ -22,7 +22,8 @@ func NewUserHandler(db *sqlx.DB) *UserHandler {
 }
 
 func (h *UserHandler) Register(g *echo.Group) {
-	g.POST("/users/follow", h.Follow)
+	g.POST("/users/:id/follow", h.Follow)
+	g.DELETE("/users/:id/unfollow", h.Unfollow)
 	g.GET("/users/followers", h.GetFollowers)
 	g.GET("/users/followees", h.GetFollowees)
 	g.GET("/users/:id", h.GetUser)
@@ -41,15 +42,15 @@ type GetUserResponse struct {
 }
 
 type UserData struct {
-	ID             int            `db:"user_id"`
-	Name           string         `db:"name"`
-	DisplayID      string         `db:"display_id"`
-	IconURL        string         `db:"icon_url"`
-	HeaderURL      string         `db:"header_url"`
-	Profile        string         `db:"profile"`
-	FollowerCounts sql.NullInt64  `db:"follower_counts"`
-	FolloweeCounts sql.NullInt64  `db:"followee_counts"`
-	CreatedAt      time.Time      `db:"created_at"`
+	ID             int           `db:"user_id"`
+	Name           string        `db:"name"`
+	DisplayID      string        `db:"display_id"`
+	IconURL        string        `db:"icon_url"`
+	HeaderURL      string        `db:"header_url"`
+	Profile        string        `db:"profile"`
+	FollowerCounts sql.NullInt64 `db:"follower_counts"`
+	FolloweeCounts sql.NullInt64 `db:"followee_counts"`
+	CreatedAt      time.Time     `db:"created_at"`
 }
 
 func (h *UserHandler) GetUser(c echo.Context) error {
@@ -104,26 +105,26 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 	return c.JSON(200, res)
 }
 
-type FollowRequest struct {
-	UserID int `json:"user_id" validate:"required"`
-}
-
 func (h *UserHandler) Follow(c echo.Context) error {
 	followerUserID := c.Get("user_id").(int)
-
-	req := new(FollowRequest)
-	if err := c.Bind(req); err != nil {
-		log.Println(err)
-		return c.JSON(400, map[string]string{"message": "Bad Request"})
-	}
-	if err := h.validator.Struct(req); err != nil {
-		log.Println(err)
-		return c.JSON(400, map[string]string{"message": "Bad Request"})
-	}
-
-	followeeUserID := req.UserID
+	followeeUserID := c.Param("id")
 
 	_, err := h.db.Exec("INSERT INTO follows (follower_id, followee_id) VALUES (?, ?)", followerUserID, followeeUserID)
+	if err != nil {
+		log.Println(err)
+		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+	}
+
+	return c.NoContent(200)
+}
+
+func (h *UserHandler) Unfollow(c echo.Context) error {
+	followerUserID := c.Get("user_id").(int)
+	followeeUserID := c.Param("id")
+
+	log.Println(followerUserID, followeeUserID)
+
+	_, err := h.db.Exec("DELETE FROM follows WHERE follower_id = ? AND followee_id = ?", followerUserID, followeeUserID)
 	if err != nil {
 		log.Println(err)
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
