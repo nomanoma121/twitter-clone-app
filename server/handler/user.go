@@ -56,26 +56,21 @@ type UserData struct {
 
 func (h *UserHandler) GetUser(c echo.Context) error {
 	userID := c.Get("user_id").(int)
-	display_id := c.Param("id")
+	displayID := c.Param("id")
+
+	targetUserID, err := h.getUserIDByDisplayID(displayID)
+	if err != nil {
+		return c.JSON(404, map[string]string{"message": "User not found"})
+	}
 
 	var user UserData
-	// TODO: なんか冗長な気がするからあとでリファクタリングする
-	err := h.db.Get(&user, `
-		SELECT user_profiles.user_id, user_profiles.name, user_profiles.display_id, user_profiles.icon_url, user_profiles.header_url, user_profiles.profile, follower_counts, followee_counts, user_profiles.created_at
+	err = h.db.Get(&user, `
+		SELECT user_profiles.user_id, user_profiles.name, user_profiles.display_id, user_profiles.icon_url, user_profiles.header_url, user_profiles.profile, user_profiles.created_at,
+		(SELECT COUNT(*) FROM follows WHERE followee_id = user_profiles.user_id) AS follower_counts,
+		(SELECT COUNT(*) FROM follows WHERE follower_id = user_profiles.user_id) AS followee_counts
 		FROM user_profiles
-		LEFT JOIN (
-			SELECT followee_id, COUNT(follower_id) AS follower_counts
-			FROM follows
-			GROUP BY followee_id
-		) AS followers ON user_profiles.user_id = followers.followee_id
-		LEFT JOIN (
-			SELECT follower_id, COUNT(followee_id) AS followee_counts
-			FROM follows
-			GROUP BY follower_id
-		) AS followees ON user_profiles.user_id = followees.follower_id
-		WHERE user_profiles.display_id = ?
-	`, display_id)
-
+		WHERE user_profiles.user_id = ?
+	`, targetUserID)
 	if err != nil {
 		log.Println(err)
 		if errors.Is(err, sql.ErrNoRows) {
@@ -83,7 +78,6 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 		}
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
-
 	// あるユーザーがこのユーザーをフォローしているか
 	isFollowed, err := h.isFollowed(userID, user.ID)
 	if err != nil {
@@ -117,9 +111,14 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 
 func (h *UserHandler) Follow(c echo.Context) error {
 	followerUserID := c.Get("user_id").(int)
-	followeeUserID := c.Param("id")
+	displayID := c.Param("id")
 
-	_, err := h.db.Exec("INSERT INTO follows (follower_id, followee_id) VALUES (?, ?)", followerUserID, followeeUserID)
+	followeeUserID, err := h.getUserIDByDisplayID(displayID)
+	if err != nil {
+		return c.JSON(404, map[string]string{"message": "User not found"})
+	}
+
+	_, err = h.db.Exec("INSERT INTO follows (follower_id, followee_id) VALUES (?, ?)", followerUserID, followeeUserID)
 	if err != nil {
 		log.Println(err)
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
@@ -130,11 +129,16 @@ func (h *UserHandler) Follow(c echo.Context) error {
 
 func (h *UserHandler) Unfollow(c echo.Context) error {
 	followerUserID := c.Get("user_id").(int)
-	followeeUserID := c.Param("id")
+	displayID := c.Param("id")
+
+	followeeUserID, err := h.getUserIDByDisplayID(displayID)
+	if err != nil {
+		return c.JSON(404, map[string]string{"message": "User not found"})
+	}
 
 	log.Println(followerUserID, followeeUserID)
 
-	_, err := h.db.Exec("DELETE FROM follows WHERE follower_id = ? AND followee_id = ?", followerUserID, followeeUserID)
+	_, err = h.db.Exec("DELETE FROM follows WHERE follower_id = ? AND followee_id = ?", followerUserID, followeeUserID)
 	if err != nil {
 		log.Println(err)
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
@@ -225,4 +229,14 @@ func (h *UserHandler) isFollowed(followerID, followeeID int) (bool, error) {
 	}
 
 	return count > 0, nil
+}
+
+// display_id -> user_id
+func (h *UserHandler) getUserIDByDisplayID(displayID string) (int, error) {
+	var userID int
+	err := h.db.Get(&userID, "SELECT user_id FROM user_profiles WHERE display_id = ?", displayID)
+	if err != nil {
+		return 0, err
+	}
+	return userID, nil
 }
