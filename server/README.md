@@ -45,6 +45,7 @@
       "reply_count": 4,
       "like_count": 5,
     }
+    "liked_by_user": false,
     "created_at": "2024-12-11",
   },
   {
@@ -77,6 +78,7 @@
   "interactions": {
     ...
   },
+  "liked_by_user": true,
   "created_at": "...",
 }
 ```
@@ -94,6 +96,7 @@
     "interactions": {
       ...
     },
+    "liked_by_user": false,
     "created_at": "",
   },
   {
