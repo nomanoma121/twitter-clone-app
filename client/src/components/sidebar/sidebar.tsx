@@ -14,10 +14,10 @@ export const Sidebar = () => {
   const location = useLocation();
   return (
     <div className="Sidebar">
-      <div className="Sidebar__icon__container">
+      <div className="Sidebar__icon__container" onClick={() => navigate("/home")}>
         <FaTwitter className="Sidebar__icon" />
       </div>
-      <div className="Sidebar__icon__container">
+      <div className="Sidebar__icon__container" onClick={() => navigate("/home")}>
         <GoHomeFill className="Sidebar__icon" />
       </div>
       <div className="Sidebar__icon__container">
