@@ -506,7 +506,7 @@ type GetTweetReplyResponse struct {
 	User          GetTweetReplyResponseUser         `json:"user"`
 	Content       string                            `json:"content"`
 	Interactions  GetTweetReplyResponseInteractions `json:"interactions"`
-	isLikedByUser bool                              `json:"liked_by_user"`
+	IsLikedByUser bool                              `json:"liked_by_user"`
 	CreatedAt     time.Time                         `json:"created_at"`
 }
 
@@ -578,7 +578,7 @@ func (h *TweetHandler) GetTweetReplies(c echo.Context) error {
 				RetweetCount: retweetCountMap[tweet.ID],
 				ReplyCount:   replyCountMap[tweet.ID],
 			},
-			isLikedByUser: isLikedByUser[i],
+			IsLikedByUser: isLikedByUser[i],
 			CreatedAt:     tweet.CreatedAt,
 		}
 	}
@@ -719,7 +719,7 @@ func (h *TweetHandler) GetUserTweets(c echo.Context) error {
 					RetweetCount: retweetCountMap[tweet.Retweet.ID],
 					ReplyCount:   replyCountMap[tweet.Retweet.ID],
 				},
-				CreatedAt:     tweet.Retweet.CreatedAt,
+				CreatedAt: tweet.Retweet.CreatedAt,
 			}
 		}
 		res[i] = GetUserTweetsResponse{
@@ -738,7 +738,7 @@ func (h *TweetHandler) GetUserTweets(c echo.Context) error {
 				ReplyCount:   replyCountMap[tweet.ID],
 			},
 			IsLikedByUser: isLikedByUser[i],
-			CreatedAt: tweet.CreatedAt,
+			CreatedAt:     tweet.CreatedAt,
 		}
 	}
 
