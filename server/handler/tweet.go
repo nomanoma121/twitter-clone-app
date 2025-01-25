@@ -596,7 +596,7 @@ type GetUserTweetsResponse struct {
 	Content       string                            `json:"content"`
 	Retweet       *GetUserTweetsResponseRetweet     `json:"retweet"`
 	Interactions  GetUserTweetsResponseInteractions `json:"interactions"`
-	IsLikedByUser bool                              `json:"is_liked_by_user"`
+	IsLikedByUser bool                              `json:"liked_by_user"`
 	CreatedAt     time.Time                         `json:"created_at"`
 }
 
