@@ -3,6 +3,8 @@ import { TweetList } from "../../components/tweet-list";
 import { useTweets } from "../../hooks/use-tweets";
 import { useEffect } from "react";
 import { useLocation } from "react-router";
+import { TweetForm } from "../../components/tweet-form";
+import "./home.css";
 
 export const Home = () => {
   const { user } = useAuth();
@@ -17,6 +19,7 @@ export const Home = () => {
 
   return (
     <div className="Home">
+      <TweetForm />
       <TweetList tweets={tweets} refetch={fetchTweets} />
     </div>
   );
