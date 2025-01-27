@@ -21,19 +21,19 @@ export const Sidebar = () => {
         <GoHomeFill className="Sidebar__icon color__blue" />
       </div>
       <div className="Sidebar__icon__container">
-        <IoSearchOutline className="Sidebar__icon color__blue" />
+        <IoSearchOutline className="Sidebar__icon" />
       </div>
       <div className="Sidebar__icon__container">
-        <PiBell className="Sidebar__icon color__blue " />
+        <PiBell className="Sidebar__icon" />
       </div>
       <div className="Sidebar__icon__container">
-        <LuMail className="Sidebar__icon color__blue " />
+        <LuMail className="Sidebar__icon" />
       </div>
       <div className="Sidebar__icon__container">
-        <FaRegUser className="Sidebar__icon color__blue" />
+        <FaRegUser className="Sidebar__icon" />
       </div>
       <div className="Sidebar__icon__container">
-        <CiCircleMore className="Sidebar__icon  color__blue" />
+        <CiCircleMore className="Sidebar__icon" />
       </div>
       <div
         className="Tweet__icon__container"
