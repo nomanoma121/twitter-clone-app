@@ -16,7 +16,7 @@ type TweetFormStateType = {
 // }
 
 // TODO: userに型を付ける
-export const TweetForm = ({ user }: User) => {
+export const TweetForm = ({ user, refetch }) => {
   const TweetAction = useCallback(
     async (
       _prevState: TweetFormStateType,
@@ -33,6 +33,7 @@ export const TweetForm = ({ user }: User) => {
       });
 
       if (res.ok) {
+        refetch();
         return { message: "" };
       }
 

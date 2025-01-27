@@ -18,7 +18,7 @@ export const Home = () => {
 
   return (
     <div className="Home">
-      <TweetForm user={user} />
+      <TweetForm user={user} refetch={fetchTweets} />
       <TweetList tweets={tweets} refetch={fetchTweets} />
     </div>
   );
