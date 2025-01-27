@@ -43,6 +43,7 @@ type TokenUserResponse struct {
 	ID    int    `json:"id"`
 	Name  string `json:"name"`
 	Email string `json:"email"`
+	DisplayID string `json:"display_id"`
 }
 
 type TokenResponse struct {
@@ -138,7 +139,7 @@ type MeResponse struct {
 	ID        int    `json:"id"`
 	Name      string `json:"name"`
 	DisplayID string `json:"display_id"`
-	Email     string `json:"email"`
+	IconURL   string `json:"icon_url"`
 }
 
 func (h *AuthHandler) Me(c echo.Context) error {
@@ -150,10 +151,10 @@ func (h *AuthHandler) Me(c echo.Context) error {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 	var userProfile model.UserProfile
-	err = h.db.Get(&userProfile, "SELECT name, display_id FROM user_profiles WHERE user_id = ?", userID)
+	err = h.db.Get(&userProfile, "SELECT name, display_id, icon_url FROM user_profiles WHERE user_id = ?", userID)
 	if err != nil {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
-	return c.JSON(200, MeResponse{ID: user.ID, Name: userProfile.Name, Email: user.Email, DisplayID: userProfile.DisplayID})
+	return c.JSON(200, MeResponse{ID: user.ID, Name: userProfile.Name, DisplayID: userProfile.DisplayID, IconURL: userProfile.IconURL})
 }
