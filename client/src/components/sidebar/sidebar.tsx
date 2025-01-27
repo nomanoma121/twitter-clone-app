@@ -15,25 +15,25 @@ export const Sidebar = () => {
   return (
     <div className="Sidebar">
       <div className="Sidebar__icon__container" onClick={() => navigate("/home")}>
-        <FaTwitter className="Sidebar__icon" />
+        <FaTwitter className="Sidebar__icon color__blue" />
       </div>
       <div className="Sidebar__icon__container" onClick={() => navigate("/home")}>
-        <GoHomeFill className="Sidebar__icon" />
+        <GoHomeFill className="Sidebar__icon color__blue" />
       </div>
       <div className="Sidebar__icon__container">
-        <IoSearchOutline className="Sidebar__icon" />
+        <IoSearchOutline className="Sidebar__icon color__blue" />
       </div>
       <div className="Sidebar__icon__container">
-        <PiBell className="Sidebar__icon" />
+        <PiBell className="Sidebar__icon color__blue " />
       </div>
       <div className="Sidebar__icon__container">
-        <LuMail className="Sidebar__icon" />
+        <LuMail className="Sidebar__icon color__blue " />
       </div>
       <div className="Sidebar__icon__container">
-        <FaRegUser className="Sidebar__icon" />
+        <FaRegUser className="Sidebar__icon color__blue" />
       </div>
       <div className="Sidebar__icon__container">
-        <CiCircleMore className="Sidebar__icon" />
+        <CiCircleMore className="Sidebar__icon  color__blue" />
       </div>
       <div
         className="Tweet__icon__container"
