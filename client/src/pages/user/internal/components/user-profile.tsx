@@ -14,8 +14,10 @@ export const UserProfile = () => {
   const { user, fetchUser } = useUser(displayID);
 
   const handleFollow = async () => {
-    const res = await serverFetch(`/api/users/${displayID}/follow`, {
-      method: "POST",
+    const method = user?.followed_by_user ? "DELETE" : "POST";
+    const endpoint = user?.followed_by_user ? "unfollow" : "follow";
+    const res = await serverFetch(`/api/users/${displayID}/${endpoint}`, {
+      method,
     });
     if (res.ok) {
       fetchUser();

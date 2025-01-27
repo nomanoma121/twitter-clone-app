@@ -4,6 +4,7 @@ import { useTweets } from "../../hooks/use-tweets";
 import { useEffect } from "react";
 import { useLocation } from "react-router";
 import { TweetForm } from "../../components/tweet-form";
+import { Tabbar } from "../../components/tabbar";
 
 export const Home = () => {
   const { user } = useAuth();
@@ -18,6 +19,7 @@ export const Home = () => {
 
   return (
     <div className="Home">
+      <Tabbar />
       <TweetForm user={user} refetch={fetchTweets} />
       <TweetList tweets={tweets} refetch={fetchTweets} />
     </div>
