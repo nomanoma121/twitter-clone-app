@@ -1,0 +1,49 @@
+.Tweet {
+  display: flex;
+  border-bottom: 1px solid #EFF3F4;
+  border-left: 1px solid #EFF3F4;
+  border-right: 1px solid #EFF3F4;
+  padding-left: 16px;
+  padding-top: 16px;
+  padding-right: 16px;
+  min-height: 120px;
+}
+
+.Tweet__user {
+  height: 100%;
+  width: 40px;
+  margin-right: 8px;
+}
+
+.Tweet__form {
+  width: 90%;
+}
+
+.Tweet__form__input {
+  width: 100%;
+  border: none;
+  font-size: 20px;
+  resize: none;
+  padding: 12px 0;
+}
+
+.Tweet__form__input:focus {
+  outline: none;
+}
+
+.Tweet__form__border {
+  margin-top: 16px;
+  border: none;
+  border-bottom: 1px solid #EFF3F4;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.Tweet__form__button {
+  border: none;
+  padding: 8px 16px;
+  border-radius: 50px;
+  font-size: 12px;
+  cursor: pointer;
+  float: right;
+}

@@ -1,19 +1,28 @@
 import { useActionState, useCallback } from "react";
-import { Input } from "../input";
 import { Button } from "../button";
 import { serverFetch } from "../../utils/fetch";
+import { UserIcon } from "../user-icon";
+import "./tweet-form.css";
 
 type TweetFormStateType = {
   message: string;
 };
 
-export const TweetForm = () => {
+// type User = {
+//   id: number;
+//   name: string;
+//   display_id: string;
+//   icon_url: string;
+// }
+
+// TODO: userに型を付ける
+export const TweetForm = ({ user }: User) => {
   const TweetAction = useCallback(
     async (
       _prevState: TweetFormStateType,
       formData: FormData
     ): Promise<TweetFormStateType> => {
-      const content = formData.get("title");
+      const content = formData.get("content");
 
       const res = await serverFetch("/api/tweet", {
         method: "POST",
@@ -40,9 +49,13 @@ export const TweetForm = () => {
 
   return (
     <div className="Tweet">
-      <form action={submitAction} className="Tweet">
-        <Input type="text" name="title" placeholder="What's happening?" />
-        <Button type="submit">Tweet</Button>
+      <div className="Tweet__user">
+        <UserIcon user={user} size={40} />
+      </div>
+      <form action={submitAction} className="Tweet__form">
+        <input type="text" name="content" className="Tweet__form__input" placeholder="いまどうしてる？" />
+        <div className="Tweet__form__border"></div>
+        <Button type="submit" className="Tweet__form__button" >ツイートする</Button>
       </form>
       {error && <p>{error.message}</p>}
     </div>
