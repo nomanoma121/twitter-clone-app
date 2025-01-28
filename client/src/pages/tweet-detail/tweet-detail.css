@@ -13,6 +13,7 @@
 .TweetDetail__user__info {
   display: flex;
   flex-direction: column;
+  margin-left: 10px;
 }
 
 .TweetDetail__user__name {
