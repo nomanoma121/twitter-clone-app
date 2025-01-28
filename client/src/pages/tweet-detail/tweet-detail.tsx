@@ -58,70 +58,86 @@ export const TweetDetail = () => {
 
   return (
     <>
-    <Header title={"ツイートする"} />
-    <div className="TweetDetail">
-      {!tweet ? (
-        <div>loading...</div>
-      ) : (
-        <>
-          <div className="TweetDetail__tweet">
-            <div className="TweetDetail__user">
-              <UserIcon
-                user={tweet.user}
-                size={40}
-                onClick={() => navigate(`/${tweet.user.display_id}`)}
-              />
-              <div className="TweetDetail__user__info">
-                <span className="TweetDetail__user__name">
-                  {tweet.user.name}
+      <Header title={"ツイートする"} />
+      <div className="TweetDetail">
+        {!tweet ? (
+          <div>loading...</div>
+        ) : (
+          <>
+            <div className="TweetDetail__tweet">
+              <div className="TweetDetail__user">
+                <UserIcon
+                  user={tweet.user}
+                  size={40}
+                  onClick={() => navigate(`/${tweet.user.display_id}`)}
+                />
+                <div className="TweetDetail__user__info">
+                  <span className="TweetDetail__user__name">
+                    {tweet.user.name}
+                  </span>
+                  <span className="TweetDetail__user__displayID">
+                    @{tweet.user.display_id}
+                  </span>
+                </div>
+              </div>
+              <div className="TweetDetail__content__wrapper">
+                <div className="TweetDetail__content__content">
+                  {tweet.content}
+                </div>
+                {tweet.retweet && <RetweetItem retweet={tweet.retweet} />}
+              </div>
+              <div className="TweetDetail__date">
+                <span>{formatDate(tweet.created_at)}</span>
+              </div>
+              <div className="TweetDetail__interactions__wrapper">
+                <div className="TweetDetail__interactions">
+                  <ReplyButton
+                    tweet={tweet}
+                    className="TweetDetail__interactions__reply"
+                  />
+                  <RetweetButton
+                    tweet={tweet}
+                    className="TweetDetail__interactions__retweet"
+                  />
+                  <LikeButton
+                    tweet={tweet}
+                    refetch={fetchMainTweet}
+                    className="TweetDetail__interactions__like"
+                  />
+                </div>
+              </div>
+              <div className="TweetDetail__reply">
+                <UserIcon user={user} size={40} />
+                <span className="TweetDetail__reply__caption">
+                  返信をツイート
                 </span>
-                <span className="TweetDetail__user__displayID">
-                  @{tweet.user.display_id}
-                </span>
+                <Button
+                  type="submit"
+                  className="TweetDetail__reply__button"
+                  active={true}
+                  onClick={() =>
+                    navigate("/compose/tweet", {
+                      state: {
+                        background: location,
+                        tweet: { type: "reply", id: tweet.id },
+                      },
+                    })
+                  }
+                >
+                  返信
+                </Button>
               </div>
             </div>
-            <div className="TweetDetail__content__wrapper">
-              <div className="TweetDetail__content__content">
-                {tweet.content}
-              </div>
-              {tweet.retweet && <RetweetItem retweet={tweet.retweet} />}
+            <div>
+              {!tweets ? (
+                <div>loading...</div>
+              ) : (
+                <TweetList tweets={tweets} refetch={fetchTweets} />
+              )}
             </div>
-            <div className="TweetDetail__date">
-              <span>{formatDate(tweet.created_at)}</span>
-            </div>
-            <div className="TweetDetail__interactions__wrapper">
-              <div className="TweetDetail__interactions">
-                <ReplyButton
-                  tweet={tweet}
-                  className="TweetDetail__interactions__reply"
-                />
-                <RetweetButton
-                  tweet={tweet}
-                  className="TweetDetail__interactions__retweet"
-                />
-                <LikeButton
-                  tweet={tweet}
-                  refetch={fetchMainTweet}
-                  className="TweetDetail__interactions__like"
-                />
-              </div>
-            </div>
-            <div className="TweetDetail__reply">
-              <UserIcon user={user} size={40} />
-              <span className="TweetDetail__reply__caption" >返信をツイート</span>
-              <Button type="submit" className="TweetDetail__reply__button" active={true} >返信</Button>
-            </div>
-          </div>
-          <div>
-            {!tweets ? (
-              <div>loading...</div>
-            ) : (
-              <TweetList tweets={tweets} refetch={fetchTweets} />
-            )}
-          </div>
-        </>
-      )}
-    </div>
-  </>
+          </>
+        )}
+      </div>
+    </>
   );
 };
