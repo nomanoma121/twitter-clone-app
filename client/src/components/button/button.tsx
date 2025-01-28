@@ -6,13 +6,14 @@ type Props = ComponentProps<"button"> & {
   width?: number;
   backgroundColor?: string;
   color?: string;
+  active?: boolean;
 };
 
 export const Button = (props: Props) => {
   return (
     <button
       {...props}
-      className={["Button", props.className].join(" ")}
+      className={`Button ${props.active ? "active" : ""} ${props.className || ""}`}
       style={{
         height: props.height,
         width: props.width,

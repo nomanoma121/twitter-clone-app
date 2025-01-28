@@ -43,7 +43,9 @@ export const UserProfile = () => {
           </div>
           <div className="User__profile__info">
             <div className="User__profile__follow">
-              <Button onClick={handleFollow}>フォロー</Button>
+              <Button onClick={handleFollow} active={user?.followed_by_user}>
+                {user?.followed_by_user ? "フォロー中" : "フォローする"}
+              </Button>
             </div>
             <div className="User__profile__name">{user.name}</div>
             <div className="User__profile__display-id">@{user.display_id}</div>

@@ -40,10 +40,7 @@
 }
 
 .Tweet__form__button {
-  border: none;
-  padding: 8px 16px;
   border-radius: 50px;
-  font-size: 12px;
   cursor: pointer;
   float: right;
 }

@@ -1,18 +1,33 @@
 .Button {
   /* background-color: var(--primary-color); */
-  background-color: #1DA1F2;
-  color: white;
+  background-color: white;
+  color: #1DA1F2;
   font-weight: bold;
   border: none;
-  padding: 8px 16px;
   text-align: center;
+  padding: 0 16px;
   text-decoration: none;
   display: inline-block;
   font-size: 16px;
   cursor: pointer;
   border-radius: 20px;
+  border: 1px solid #1DA1F2;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .Button:hover {
-  background-color: #0F8BDD;
+  background-color: #1DA1F2;
+  color: white;
+}
+
+.Button.active {
+  background-color: #1DA1F2;
+  color: white;
+}
+
+Button.active:hover {
+  background-color: #1A91DA;
 }
