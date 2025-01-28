@@ -42,7 +42,7 @@ export const UserProfile = ({ user, refetch }: UserProfileProps) => {
           <div className="User__profile__info">
             <div className="User__profile__follow">
               <Button onClick={handleFollow} active={user?.followed_by_user}>
-                {user?.followed_by_user ? "フォロー中" : "フォローする"}
+                {user?.followed_by_user ? "フォロー中" : "フォロー"}
               </Button>
             </div>
             <div className="User__profile__name">{user.name}</div>
