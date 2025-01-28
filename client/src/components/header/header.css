@@ -1,0 +1,35 @@
+.Header {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  height: 55px;
+  padding: 0 16px;
+  background-color: rgb(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  z-index: 99999;
+}
+
+.Header__backButton {
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20px;
+  border-radius: 50%;
+}
+
+.Header__backButton:hover {
+  background-color: rgb(15, 20, 25, 0.1);
+  border-radius: 50%;
+}
+
+.Header__content h1 {
+  font-size: 18px;
+}
+
+.Header__content h2 {
+  font-size: 14px;
+  color: #657786;
+}

@@ -7,12 +7,13 @@ import { UserIcon } from "../../components/user-icon";
 import RetweetItem from "../../components/retweet-item";
 import { useNavigate } from "react-router";
 import { TTweet } from "../../types/tweet";
-import "./tweet-detail.css";
+import { Header } from "../../components/header";
 import { LikeButton } from "../../components/like-button";
 import { RetweetButton } from "../../components/retweet-button";
 import { ReplyButton } from "../../components/reply-button";
 import { Button } from "../../components/button";
 import { useLocation } from "react-router";
+import "./tweet-detail.css";
 
 export const TweetDetail = () => {
   const [tweet, setTweet] = useState<TTweet | null>(null);
@@ -56,6 +57,8 @@ export const TweetDetail = () => {
   };
 
   return (
+    <>
+    <Header title={"ツイートする"} />
     <div className="TweetDetail">
       {!tweet ? (
         <div>loading...</div>
@@ -119,5 +122,6 @@ export const TweetDetail = () => {
         </>
       )}
     </div>
+  </>
   );
 };
