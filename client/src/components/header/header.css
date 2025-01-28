@@ -9,7 +9,7 @@
   backdrop-filter: blur(10px);
   border-right: 1px solid rgb(239, 243, 244);
   border-left: 1px solid rgb(239, 243, 244);
-  z-index: 99999;
+  z-index: 999;
 }
 
 .Header__backButton {
