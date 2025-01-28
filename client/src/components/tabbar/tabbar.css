@@ -8,13 +8,45 @@
 }
 
 .Tabbar__tab {
+  height: 100%;
   cursor: pointer;
   width: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 16px;
-  /* 薄いグレー、ツイッターのタブの色 */
   color: #657786;
-  background-color: green;
+  position: relative;
+}
+
+.Tabbar__tab:hover {
+  background-color: rgb(15, 20, 25, 0.1);
+}
+
+.Tabbar__tab__title {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.Tabbar__tab__titile.active {
+  font-weight: bold;
+  color: black;
+}
+
+.Tabbar__tab__border {
+  position: absolute;
+  bottom: 0;
+  height: 4px;
+  background-color: transparent;
+  z-index: 1;
+  width: 100%;
+}
+
+.Tabbar__tab__border.active {
+  position: absolute;
+  bottom: 0;
+  height: 4px;
+  background-color: #1DA1F2;
 }
