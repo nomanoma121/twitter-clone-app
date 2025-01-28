@@ -30,7 +30,7 @@
   align-items: center;
 }
 
-.Tabbar__tab__titile.active {
+.Tabbar__tab__title.active {
   font-weight: bold;
   color: black;
 }
