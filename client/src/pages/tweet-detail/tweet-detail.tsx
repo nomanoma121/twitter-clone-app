@@ -106,10 +106,10 @@ export const TweetDetail = () => {
                 />
               </div>
             </div>
-            <div>
+            <div className="TweetDetail__reply">
               <UserIcon user={user} size={40} />
-              <span>返信をツイート</span>
-              <Button type="submit">リプライ</Button>
+              <span className="TweetDetail__reply__caption" >返信をツイート</span>
+              <Button type="submit" className="TweetDetail__reply__button" active={true} >返信</Button>
             </div>
           </div>
           <div>

@@ -1,7 +1,6 @@
 .TweetDetail__tweet {
-  width: 100%;
   border: 1px solid #eff3f4;
-  padding: 16px;
+  padding: 16px; 
 }
 
 .TweetDetail__user {
@@ -48,4 +47,23 @@
   justify-content: space-between;
   width: 50%;
   margin-left: 10px;
+}
+
+.TweetDetail__reply {
+  height: 68px;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.TweetDetail__reply__caption {
+  font-size: 20px;
+  margin-left: 10px;
+  color: #536471;
+}
+
+.TweetDetail__reply__button {
+  position: absolute;
+  right: 20px;
+  cursor: pointer;
 }
