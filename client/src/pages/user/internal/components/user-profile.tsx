@@ -1,26 +1,24 @@
-import { useParams } from "react-router";
 import { serverFetch } from "../../../../utils/fetch";
 import { SlCalender } from "react-icons/sl";
 import { UserIcon } from "../../../../components/user-icon";
 import { Button } from "../../../../components/button";
-import { useUser } from "../hooks/use-user";
 import "./user-profile.css";
 
-export const UserProfile = () => {
-  const { displayID } = useParams();
-  if (!displayID) {
-    return null;
-  }
-  const { user, fetchUser } = useUser(displayID);
+// TODO: Userの型を何とかする
+type UserProfileProps = {
+  user: any;
+  refetch: () => void;
+};
 
+export const UserProfile = ({ user, refetch }: UserProfileProps) => {
   const handleFollow = async () => {
     const method = user?.followed_by_user ? "DELETE" : "POST";
     const endpoint = user?.followed_by_user ? "unfollow" : "follow";
-    const res = await serverFetch(`/api/users/${displayID}/${endpoint}`, {
+    const res = await serverFetch(`/api/users/${user.display_id}/${endpoint}`, {
       method,
     });
     if (res.ok) {
-      fetchUser();
+      refetch();
     }
   };
 

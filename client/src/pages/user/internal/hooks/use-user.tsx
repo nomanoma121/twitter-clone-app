@@ -16,7 +16,7 @@ type User = {
 };
 
 export const useUser = (displayID: string) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [userData, setUser] = useState<User | null>(null);
 
   const fetchUser = async () => {
     const res = await serverFetch(`/api/users/${displayID}`);
@@ -31,7 +31,7 @@ export const useUser = (displayID: string) => {
   }, []);
 
   return {
-    user,
+    userData,
     fetchUser,
   };
 };
