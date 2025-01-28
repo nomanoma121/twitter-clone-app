@@ -7,6 +7,8 @@
   padding: 0 16px;
   background-color: rgb(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
+  border-right: 1px solid rgb(239, 243, 244);
+  border-left: 1px solid rgb(239, 243, 244);
   z-index: 99999;
 }
 
