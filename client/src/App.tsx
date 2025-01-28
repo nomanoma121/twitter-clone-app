@@ -22,7 +22,7 @@ function App() {
     <>
       <Container>
         <Sidebar />
-        <div style={{ maxWidth: "600px", width: "100%", borderLeft: "1px solid #e1e8ed", borderRight: "1px solid #e1e8ed" }}>
+        <div style={{ maxWidth: "632px", width: "100%", borderLeft: "1px solid #e1e8ed", borderRight: "1px solid #e1e8ed" }}>
           <Routes location={background || location}>
             <Route path="/" element={<Top />} />
             <Route path="/login" element={<Login />} />
