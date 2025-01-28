@@ -14,7 +14,6 @@
   display: flex;
   margin-right: 8px;
   width: 100%;
-  /* background-color: green; */
 }
 
 .RetweetItem__user__name {
@@ -22,6 +21,7 @@
   color: #0F1419;
   font-size: 15px;
   margin-right: 5px;
+  margin-left: 5px;
 }
 
 .RetweetItem__user__displayID, .RetweetItem__user__createdAt {
