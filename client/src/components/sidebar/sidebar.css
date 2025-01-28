@@ -14,12 +14,12 @@
   cursor: pointer;
   padding: 12px;
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
+  width: 30px;
+  height: 30px;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 10px 0;
+  margin: 5px 0;
 }
 
 .Sidebar__icon__container:hover {
