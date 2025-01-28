@@ -23,8 +23,6 @@
 }
 
 .Sidebar__icon__container:hover {
-  /* background-color: #f5f5f5; */
-  /* もう少し濃くてもいいかも */
   background-color: #f0f0f0;
 }
 
@@ -55,4 +53,18 @@
 
 .color__blue {
   color: #1DA1F2;
+}
+
+.Sidebar__user__container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  width: 64px;
+  height: 64px;
+  margin: 10px 0;
+}
+
+.Sidebar__user__container:hover {
+  background-color: #f0f0f0;
 }

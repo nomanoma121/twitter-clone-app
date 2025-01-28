@@ -1,4 +1,3 @@
-import "./sidebar.css";
 import { FaRegUser, FaTwitter } from "react-icons/fa";
 import { GoHomeFill } from "react-icons/go";
 import { IoSearchOutline } from "react-icons/io5";
@@ -8,10 +7,15 @@ import { CiCircleMore } from "react-icons/ci";
 import { GiFeather } from "react-icons/gi";
 import { useNavigate } from "react-router";
 import { useLocation } from "react-router";
+import { useAuth } from "../../provider/auth";
+import { UserIcon } from "../user-icon/user-icon";
+import "./sidebar.css";
 
 export const Sidebar = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
   return (
     <div className="Sidebar">
       <div className="Sidebar__icon__container" onClick={() => navigate("/home")}>
@@ -48,6 +52,11 @@ export const Sidebar = () => {
       >
         <GiFeather className="Tweet__icon" />
       </div>
+      { user && (
+        <div className="Sidebar__user__container" onClick={() => navigate(`/${user.display_id}`)}>
+          <UserIcon user={user} size={40} />
+        </div>
+      )}
     </div>
   );
 };
