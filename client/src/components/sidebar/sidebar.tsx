@@ -1,10 +1,10 @@
-import { FaRegUser, FaTwitter } from "react-icons/fa";
+import { FaTwitter } from "react-icons/fa";
 import { GoHomeFill } from "react-icons/go";
 import { IoSearchOutline } from "react-icons/io5";
 import { PiBell } from "react-icons/pi";
 import { LuMail } from "react-icons/lu";
-import { CiCircleMore } from "react-icons/ci";
 import { GiFeather } from "react-icons/gi";
+import { RiLogoutBoxLine } from "react-icons/ri";
 import { useNavigate } from "react-router";
 import { useLocation } from "react-router";
 import { useAuth } from "../../provider/auth";
@@ -13,6 +13,7 @@ import "./sidebar.css";
 
 export const Sidebar = () => {
   const { user } = useAuth();
+  const auth = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -40,7 +41,7 @@ export const Sidebar = () => {
         <LuMail className="Sidebar__icon" />
       </div>
       <div className="Sidebar__icon__container">
-        <CiCircleMore className="Sidebar__icon" />
+        <RiLogoutBoxLine  className="Sidebar__icon" onClick={() => auth.logout()} />
       </div>
       <div
         className="Tweet__icon__container"
