@@ -27,6 +27,7 @@ func (h *UserHandler) Register(g *echo.Group) {
 	g.GET("/users/followers", h.GetFollowers)
 	g.GET("/users/followees", h.GetFollowees)
 	g.GET("/users/:id", h.GetUser)
+	g.GET("/users/:id/tweet-counts", h.GetTweetCounts)
 }
 
 type GetUserResponse struct {
@@ -239,4 +240,26 @@ func (h *UserHandler) getUserIDByDisplayID(displayID string) (int, error) {
 		return 0, err
 	}
 	return userID, nil
+}
+
+type GetTweetCountsResponse struct {
+	TweetCounts int `json:"tweet_counts"`
+}
+
+func (h *UserHandler) GetTweetCounts(c echo.Context) error {
+	displayID := c.Param("id")
+
+	userID, err := h.getUserIDByDisplayID(displayID)
+	if err != nil {
+		return c.JSON(404, map[string]string{"message": "User not found"})
+	}
+
+	var tweetCounts int
+	err = h.db.Get(&tweetCounts, "SELECT COUNT(*) FROM tweets WHERE user_id = ?", userID)
+	if err != nil {
+		log.Println(err)
+		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+	}
+
+	return c.JSON(200, GetTweetCountsResponse{TweetCounts: tweetCounts})
 }
