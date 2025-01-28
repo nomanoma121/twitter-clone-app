@@ -1,5 +1,4 @@
 import { Route, Routes, useLocation } from "react-router";
-import { Header } from "./components/header";
 import { Sidebar } from "./components/sidebar";
 import { lazy } from "react";
 import { Container } from "./components/container/container";
@@ -21,7 +20,6 @@ function App() {
   const background = state?.background;
   return (
     <>
-      <Header />
       <Container>
         <Sidebar />
         <div style={{ maxWidth: "600px", width: "100%" }}>
