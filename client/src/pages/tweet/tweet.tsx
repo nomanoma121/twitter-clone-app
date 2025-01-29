@@ -5,6 +5,8 @@ import { useAuth } from "../../provider/auth";
 import { useLocation } from "react-router";
 import { useNavigate } from "react-router";
 import { RxCross2 } from "react-icons/rx";
+import { UserIcon } from "../../components/user-icon";
+import "./tweet.css";
 
 type TweetFormStateType = {
   message: string;
@@ -57,15 +59,24 @@ export const Tweet = () => {
   });
 
   if (!user) return null;
+
   return (
     <div className="Tweet">
-      <div>
-        <RxCross2 />
-        <p>{tweetType === "tweet" ? "ツイート" : "返信"}</p>
+      <div className="Tweet__top" >
+        <RxCross2 style={{ scale: "1.2"}} />
       </div>
-      <form action={submitAction} className="Tweet">
-        <input type="text" name="content" />
-        <Button type="submit">Tweet</Button>
+      <form action={submitAction} className="Tweet__form">
+        <div className="Tweet__form__content" >
+          <div className="Tweet__form__icon" >
+            <UserIcon user={user} size={40} />
+          </div>
+          <div className="Tweet__form__input" >
+            <input type="text" name="content" placeholder="いまどうしてる？" />
+          </div>
+        </div>
+        <div className="Tweet__form__footer" >
+          <Button type="submit" active={true} >ツイート</Button>
+        </div>
       </form>
       {error && <p>{error.message}</p>}
     </div>

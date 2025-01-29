@@ -1,4 +1,4 @@
-.Tweet {
+.TweetForm {
   display: flex;
   border-bottom: 1px solid #EFF3F4;
   padding-left: 16px;
@@ -7,17 +7,17 @@
   min-height: 120px;
 }
 
-.Tweet__user {
+.TweetForm__user {
   height: 100%;
   width: 40px;
   margin-right: 8px;
 }
 
-.Tweet__form {
+.TweetForm__form {
   width: 90%;
 }
 
-.Tweet__form__input {
+.TweetForm__form__input {
   width: 100%;
   border: none;
   font-size: 20px;
@@ -25,12 +25,12 @@
   padding: 12px 0;
 }
 
-.Tweet__form__input:focus {
+.TweetForm__form__input:focus {
   outline: none;
   background-color: white;
 }
 
-.Tweet__form__border {
+.TweetForm__form__border {
   margin-top: 16px;
   border: none;
   border-bottom: 1px solid #EFF3F4;
@@ -38,7 +38,7 @@
   margin-bottom: 12px;
 }
 
-.Tweet__form__button {
+.TweetForm__form__button {
   border-radius: 50px;
   cursor: pointer;
   float: right;
