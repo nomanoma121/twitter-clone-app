@@ -1,10 +1,10 @@
 import { useActionState, useCallback } from "react";
 import { Button } from "../../components/button";
-import { Input } from "../../components/input";
 import { serverFetch } from "../../utils/fetch";
 import { useAuth } from "../../provider/auth";
 import { useLocation } from "react-router";
-import { useNavigate} from "react-router";
+import { useNavigate } from "react-router";
+import { RxCross2 } from "react-icons/rx";
 
 type TweetFormStateType = {
   message: string;
@@ -23,22 +23,16 @@ export const Tweet = () => {
       _prevState: TweetFormStateType,
       formData: FormData
     ): Promise<TweetFormStateType> => {
-      const content = formData.get("title");
+      const content = formData.get("content");
 
-      let requestUrl;
-      if (tweetType === "tweet") {
-        requestUrl = "/api/tweet";
-      } else if (tweetType === "reply") {
-        requestUrl = `/api/tweet/${location.state?.tweet.id}/reply`;
-      } else if (tweetType === "retweet") {
-        requestUrl = `/api/tweet/${location.state?.tweet.id}/retweet`;
-      } else {
-        return {
-          message: "Tweetの投稿に失敗しました。",
-        };
-      }
+      const endpoint =
+        tweetType === "tweet"
+          ? "/api/tweet"
+          : tweetType === "reply"
+          ? `/api/tweet/${location.state?.tweet.id}/reply`
+          : `/api/tweet/${location.state?.tweet.id}/retweet`;
 
-      const res = await serverFetch(requestUrl, {
+      const res = await serverFetch(endpoint, {
         method: "POST",
         body: JSON.stringify({ content }),
         headers: {
@@ -63,11 +57,14 @@ export const Tweet = () => {
   });
 
   if (!user) return null;
-  console.log("tweet")
   return (
     <div className="Tweet">
+      <div>
+        <RxCross2 />
+        <p>{tweetType === "tweet" ? "ツイート" : "返信"}</p>
+      </div>
       <form action={submitAction} className="Tweet">
-        <Input type="text" name="title" placeholder="What's happening?" />
+        <input type="text" name="content" />
         <Button type="submit">Tweet</Button>
       </form>
       {error && <p>{error.message}</p>}
