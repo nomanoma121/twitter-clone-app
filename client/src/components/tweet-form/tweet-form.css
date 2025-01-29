@@ -27,6 +27,7 @@
 
 .Tweet__form__input:focus {
   outline: none;
+  background-color: white;
 }
 
 .Tweet__form__border {
