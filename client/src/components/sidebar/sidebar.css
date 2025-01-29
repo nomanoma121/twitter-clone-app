@@ -31,7 +31,7 @@
   scale: 1.7;
 }
 
-.Tweet__icon__container {
+.Sidebar__tweet__icon__container {
   width: 50px;
   height: 50px;
   border-radius: 50%;
@@ -42,11 +42,11 @@
   align-items: center;
 }
 
-.Tweet__icon__container:hover {
+.Sidebar__tweet__icon__container:hover {
   background-color: #0F8BDD;
 }
 
-.Tweet__icon {
+.Sidebar__tweet__icon {
   cursor: pointer;
   scale: 1.8;
 }

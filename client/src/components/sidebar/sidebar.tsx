@@ -44,7 +44,7 @@ export const Sidebar = () => {
         <RiLogoutBoxLine  className="Sidebar__icon" onClick={() => auth.logout()} />
       </div>
       <div
-        className="Tweet__icon__container"
+        className="Sidebar__tweet__icon__container"
         onClick={() =>
           navigate("/compose/tweet", {
             state: {
@@ -54,7 +54,7 @@ export const Sidebar = () => {
           })
         }
       >
-        <GiFeather className="Tweet__icon" />
+        <GiFeather className="Sidebar__tweet__icon" />
       </div>
       {user && (
         <div
