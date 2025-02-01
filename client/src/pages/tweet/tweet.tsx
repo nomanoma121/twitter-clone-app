@@ -71,7 +71,7 @@ export const Tweet = () => {
             <UserIcon user={user} size={40} />
           </div>
           <div className="Tweet__form__input" >
-            <input type="text" name="content" placeholder="いまどうしてる？" />
+            <input type="text" name="content" placeholder="いまどうしてる？" required />
           </div>
         </div>
         <div className="Tweet__form__footer" >
