@@ -12,6 +12,7 @@ const SignUp = lazy(() => import("./pages/signup"));
 const Home = lazy(() => import("./pages/home"));
 const Tweet = lazy(() => import("./pages/tweet"));
 const User = lazy(() => import("./pages/user"));
+const Follow = lazy(() => import("./pages/follow"));
 
 function App() {
   const location = useLocation();
@@ -40,6 +41,7 @@ function App() {
               element={<TweetDetail />}
             />
             <Route path="/:displayID" element={<User />} />
+            <Route path="/:displayID/following" element={<Follow />} />
           </Routes>
 
           {/* モーダル用のルート */}
