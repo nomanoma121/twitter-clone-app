@@ -63,7 +63,9 @@ export const Tweet = () => {
   return (
     <div className="Tweet">
       <div className="Tweet__top" >
-        <RxCross2 style={{ scale: "1.2"}} />
+        <div className="Tweet__top__cross" >
+          <RxCross2 style={{ scale: "1.2"}} onClick={() => navigate(-1)} />
+        </div>
       </div>
       <form action={submitAction} className="Tweet__form">
         <div className="Tweet__form__content" >
