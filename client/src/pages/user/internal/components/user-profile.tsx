@@ -53,13 +53,13 @@ export const UserProfile = ({ user, refetch }: UserProfileProps) => {
               {" " + formatDate(user.created_at)}からTwitterを利用しています
             </div>
             <div className="User__profile__counts">
-              <div>
-                {user.followee_counts}
-                <span>フォロー中</span>
+              <div className="User__profile__counts__item">
+                <div>{user.followee_counts}</div>
+                <div className="User__profile__counts__follow">フォロー中</div>
               </div>
-              <div>
-                {user.follower_counts}
-                <span>フォロワー</span>
+              <div className="User__profile__counts__item">
+                <div>{user.follower_counts}</div>
+                <div className="User__profile__counts__follow">フォロワー</div>
               </div>
             </div>
           </div>

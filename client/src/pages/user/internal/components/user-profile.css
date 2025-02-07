@@ -57,6 +57,25 @@
   margin-top: 10px;
   color: black;
   font-size: 15px;
+  font-weight: 700;
+}
+
+.User__profile__counts__item {
+  margin-right: 16px;
+  display: flex;
+  align-items: center;
+  height: 15px;
+  border-bottom: 0.5px solid white;
+}
+
+.User__profile__counts__item:hover {
+  border-bottom: 0.5px solid black;
+}
+
+.User__profile__counts__follow {
+  color: #657786;
+  margin-left: 5px;
+  font-weight: 400;
 }
 
 .User__profile__counts span {
