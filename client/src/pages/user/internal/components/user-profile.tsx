@@ -3,6 +3,7 @@ import { SlCalender } from "react-icons/sl";
 import { UserIcon } from "../../../../components/user-icon";
 import { Button } from "../../../../components/button";
 import "./user-profile.css";
+import { useNavigate } from "react-router";
 
 // TODO: Userの型を何とかする
 type UserProfileProps = {
@@ -11,6 +12,7 @@ type UserProfileProps = {
 };
 
 export const UserProfile = ({ user, refetch }: UserProfileProps) => {
+  const navigate = useNavigate();
   const handleFollow = async () => {
     const method = user?.followed_by_user ? "DELETE" : "POST";
     const endpoint = user?.followed_by_user ? "unfollow" : "follow";
@@ -53,11 +55,11 @@ export const UserProfile = ({ user, refetch }: UserProfileProps) => {
               {" " + formatDate(user.created_at)}からTwitterを利用しています
             </div>
             <div className="User__profile__counts">
-              <div className="User__profile__counts__item">
+              <div className="User__profile__counts__item" onClick={() => navigate(`/${user.display_id}/following`)} >
                 <div>{user.followee_counts}</div>
                 <div className="User__profile__counts__follow">フォロー中</div>
               </div>
-              <div className="User__profile__counts__item">
+              <div className="User__profile__counts__item" onClick={() => navigate(`/${user.display_id}/followers`)} >
                 <div>{user.follower_counts}</div>
                 <div className="User__profile__counts__follow">フォロワー</div>
               </div>
