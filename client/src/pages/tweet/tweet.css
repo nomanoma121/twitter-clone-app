@@ -6,6 +6,20 @@
   width: 100%;
 }
 
+.Tweet__top__cross {
+  margin-top: 8px;
+  height: 34px;
+  width: 34px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.Tweet__top__cross:hover {
+  background-color: rgb(15, 20, 25, 0.1)
+}
+
 .Tweet__form {
   min-height: 230px;
 }

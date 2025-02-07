@@ -32,6 +32,10 @@
   margin-right: 5px;
 }
 
+.TweetListItem__content__user__name:hover {
+  text-decoration: underline;
+}
+
 .TweetListItem__content__user__displayID, .TweetListItem__content__user__createdAt {
   color: #536471;
   font-size: 15px;
