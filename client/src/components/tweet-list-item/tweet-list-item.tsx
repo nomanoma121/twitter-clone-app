@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router";
 import { TTweet } from "../../types/tweet";
-import { serverFetch } from "../../utils/fetch";
 import { UserIcon } from "../user-icon/user-icon";
 import { LikeButton } from "../like-button/like-button";
 import { ReplyButton } from "../reply-button/reply-button";
@@ -24,14 +23,17 @@ export const TweetListItem = ({ tweet, refetch }: TweetListItemProps) => {
       onClick={() => navigate(`/${tweet.user.display_id}/status/${tweet.id}`)}
     >
       <div className="TweetListItem__user__icon__wrapper">
-        <UserIcon
-          user={tweet.user}
-          size={40}
-        />
+        <UserIcon user={tweet.user} size={40} />
       </div>
       <div className="TweetListItem__content__wrapper">
         <div className="TweetListItem__content__user__wrapper">
-          <span className="TweetListItem__content__user__name">
+          <span
+            className="TweetListItem__content__user__name"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/${tweet.user.display_id}`);
+            }}
+          >
             {tweet.user.name}
           </span>
           <span className="TweetListItem__content__user__displayID">
@@ -44,9 +46,19 @@ export const TweetListItem = ({ tweet, refetch }: TweetListItemProps) => {
         <div className="TweetListItem__content__content">{tweet.content}</div>
         {tweet.retweet && <RetweetItem retweet={tweet.retweet} />}
         <div className="TweetListItem__content__interactions">
-          <ReplyButton tweet={tweet} className="TweetListItem__content__interactions__reply" />
-          <RetweetButton tweet={tweet} className="TweetListItem__content__interactions__retweet" />
-          <LikeButton tweet={tweet} refetch={refetch} className="TweetListItem__content__interactions__like" />
+          <ReplyButton
+            tweet={tweet}
+            className="TweetListItem__content__interactions__reply"
+          />
+          <RetweetButton
+            tweet={tweet}
+            className="TweetListItem__content__interactions__retweet"
+          />
+          <LikeButton
+            tweet={tweet}
+            refetch={refetch}
+            className="TweetListItem__content__interactions__like"
+          />
         </div>
       </div>
     </div>

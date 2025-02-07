@@ -21,6 +21,10 @@
   font-size: 15px;
 }
 
+.TweetDetail__user__name:hover {
+  text-decoration: underline;
+}
+
 .TweetDetail__user__displayID {
   color: #536471;
   font-size: 15px;

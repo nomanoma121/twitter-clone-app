@@ -72,7 +72,7 @@ export const TweetDetail = () => {
                   onClick={() => navigate(`/${tweet.user.display_id}`)}
                 />
                 <div className="TweetDetail__user__info">
-                  <span className="TweetDetail__user__name">
+                  <span className="TweetDetail__user__name" onClick={() => navigate(`/${tweet.user.display_id}`)} >
                     {tweet.user.name}
                   </span>
                   <span className="TweetDetail__user__displayID">
