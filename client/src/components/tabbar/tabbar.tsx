@@ -7,11 +7,12 @@ type TabbarProps = {
     second: string;
   };
   switchTab: () => void;
+  defaultTab?: "first" | "second";
 };
 
-export const Tabbar = ({ titles, switchTab }: TabbarProps) => {
-  const [isTimeline, setIsTimeline] = useState(true);
-  const handleClick = (order) => {
+export const Tabbar = ({ titles, defaultTab, switchTab }: TabbarProps) => {
+  const [isTimeline, setIsTimeline] = useState(defaultTab == "second" ? false : true);
+  const handleClick = (order: "first" | "second") => {
     if (order === "first") {
       setIsTimeline(true);
     } else {
