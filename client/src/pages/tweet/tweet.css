@@ -34,6 +34,7 @@
 
 .Tweet__form__input input:focus {
   outline: none;
+  background-color: white;
 }
 
 .Tweet__form__footer {
