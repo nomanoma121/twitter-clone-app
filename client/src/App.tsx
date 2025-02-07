@@ -41,7 +41,8 @@ function App() {
               element={<TweetDetail />}
             />
             <Route path="/:displayID" element={<User />} />
-            <Route path="/:displayID/following" element={<Follow />} />
+            <Route path="/:displayID/following" element={<Follow viewMode={"following"} />} />
+            <Route path="/:displayID/followers" element={<Follow viewMode={"followers"} />} />
           </Routes>
 
           {/* モーダル用のルート */}
