@@ -24,8 +24,8 @@ func NewUserHandler(db *sqlx.DB) *UserHandler {
 func (h *UserHandler) Register(g *echo.Group) {
 	g.POST("/users/:id/follow", h.Follow)
 	g.DELETE("/users/:id/unfollow", h.Unfollow)
-	g.GET("/users/followers", h.GetFollowers)
-	g.GET("/users/followees", h.GetFollowees)
+	g.GET("/users/:displayID/followers", h.GetFollowers)
+	g.GET("/users/:displayID/followees", h.GetFollowees)
 	g.GET("/users/:id", h.GetUser)
 	g.GET("/users/:id/tweet-counts", h.GetTweetCounts)
 }
@@ -67,8 +67,8 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 	var user UserData
 	err = h.db.Get(&user, `
 		SELECT user_profiles.user_id, user_profiles.name, user_profiles.display_id, user_profiles.icon_url, user_profiles.header_url, user_profiles.profile, user_profiles.created_at,
-		(SELECT COUNT(*) FROM follows WHERE followee_id = user_profiles.user_id) AS follower_counts,
-		(SELECT COUNT(*) FROM follows WHERE follower_id = user_profiles.user_id) AS followee_counts
+		(SELECT COUNT(*) FROM follows WHERE followee_id = user_profiles.user_id) AS followee_counts,
+		(SELECT COUNT(*) FROM follows WHERE follower_id = user_profiles.user_id) AS follower_counts
 		FROM user_profiles
 		WHERE user_profiles.user_id = ?
 	`, targetUserID)
@@ -80,7 +80,7 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 	// あるユーザーがこのユーザーをフォローしているか
-	isFollowed, err := h.isFollowed(userID, user.ID)
+	isFollowed, err := h.isFollowed(user.ID, userID)
 	if err != nil {
 		log.Println(err)
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
@@ -111,10 +111,10 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 }
 
 func (h *UserHandler) Follow(c echo.Context) error {
-	followerUserID := c.Get("user_id").(int)
+	followeeUserID := c.Get("user_id").(int)
 	displayID := c.Param("id")
 
-	followeeUserID, err := h.getUserIDByDisplayID(displayID)
+	followerUserID, err := h.getUserIDByDisplayID(displayID)
 	if err != nil {
 		return c.JSON(404, map[string]string{"message": "User not found"})
 	}
@@ -129,10 +129,10 @@ func (h *UserHandler) Follow(c echo.Context) error {
 }
 
 func (h *UserHandler) Unfollow(c echo.Context) error {
-	followerUserID := c.Get("user_id").(int)
+	followeeUserID := c.Get("user_id").(int)
 	displayID := c.Param("id")
 
-	followeeUserID, err := h.getUserIDByDisplayID(displayID)
+	followerUserID, err := h.getUserIDByDisplayID(displayID)
 	if err != nil {
 		return c.JSON(404, map[string]string{"message": "User not found"})
 	}
@@ -150,16 +150,20 @@ func (h *UserHandler) Unfollow(c echo.Context) error {
 
 type GetFollowersResponse struct {
 	ID        int    `json:"id"`
-	Name      string `json:"name"`
 	DisplayID string `json:"display_id"`
+	Name      string `json:"name"`
+	IconURL   string `json:"icon_url"`
+	Profile   string `json:"profile"`
 }
 
 func (h *UserHandler) GetFollowers(c echo.Context) error {
-	userID := c.Get("user_id").(int)
+	displayID := c.Param("displayID")
+
+	userID, err := h.getUserIDByDisplayID(displayID)
 
 	var followers []model.UserProfile
-	err := h.db.Select(&followers, `
-		SELECT user_profiles.user_id AS id, user_profiles.name, user_profiles.display_id
+	err = h.db.Select(&followers, `
+		SELECT user_profiles.user_id AS id, user_profiles.name, user_profiles.display_id, user_profiles.icon_url, user_profiles.profile
 		FROM user_profiles
 		JOIN follows ON user_profiles.user_id = follows.follower_id
 		WHERE follows.followee_id = ?
@@ -179,6 +183,8 @@ func (h *UserHandler) GetFollowers(c echo.Context) error {
 			ID:        follower.ID,
 			Name:      follower.Name,
 			DisplayID: follower.DisplayID,
+			IconURL:   follower.IconURL,
+			Profile:   follower.Profile,
 		}
 	}
 
@@ -189,14 +195,18 @@ type GetFolloweesResponse struct {
 	ID        int    `json:"id"`
 	DisplayID string `json:"display_id"`
 	Name      string `json:"name"`
+	IconURL   string `json:"icon_url"`
+	Profile   string `json:"profile"`
 }
 
 func (h *UserHandler) GetFollowees(c echo.Context) error {
-	userID := c.Get("user_id").(int)
+	displayID := c.Param("displayID")
+
+	userID, err := h.getUserIDByDisplayID(displayID)
 
 	var followees []model.UserProfile
-	err := h.db.Select(&followees, `
-		SELECT user_profiles.user_id AS id, user_profiles.name, user_profiles.display_id
+	err = h.db.Select(&followees, `
+		SELECT user_profiles.user_id AS id, user_profiles.name, user_profiles.display_id, user_profiles.icon_url, user_profiles.profile
 		FROM user_profiles
 		JOIN follows ON user_profiles.user_id = follows.followee_id
 		WHERE follows.follower_id = ?
@@ -216,6 +226,8 @@ func (h *UserHandler) GetFollowees(c echo.Context) error {
 			ID:        followee.ID,
 			Name:      followee.Name,
 			DisplayID: followee.DisplayID,
+			IconURL:   followee.IconURL,
+			Profile:   followee.Profile,
 		}
 	}
 
