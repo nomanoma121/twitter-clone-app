@@ -98,8 +98,6 @@ func main() {
 
 	apiGroup := e.Group("/api")
 	apiGroup.Use(authMiddleware.Middleware())
-	todoHandler := handler.NewTodoHandler(db)
-	todoHandler.Register(apiGroup)
 	tweetHandler := handler.NewTweetHandler(db)
 	tweetHandler.Register(apiGroup)
 	userHandler := handler.NewUserHandler(db)
