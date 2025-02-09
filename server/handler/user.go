@@ -25,7 +25,7 @@ func (h *UserHandler) Register(g *echo.Group) {
 	g.POST("/users/:id/follow", h.Follow)
 	g.DELETE("/users/:id/unfollow", h.Unfollow)
 	g.GET("/users/:displayID/followers", h.GetFollowers)
-	g.GET("/users/:displayID/followees", h.GetFollowees)
+	g.GET("/users/:displayID/following", h.GetFollowees)
 	g.GET("/users/:id", h.GetUser)
 	g.GET("/users/:id/tweet-counts", h.GetTweetCounts)
 }
@@ -149,17 +149,19 @@ func (h *UserHandler) Unfollow(c echo.Context) error {
 }
 
 type GetFollowersResponse struct {
-	ID        int    `json:"id"`
-	DisplayID string `json:"display_id"`
-	Name      string `json:"name"`
-	IconURL   string `json:"icon_url"`
-	Profile   string `json:"profile"`
+	ID             int    `json:"id"`
+	DisplayID      string `json:"display_id"`
+	Name           string `json:"name"`
+	IconURL        string `json:"icon_url"`
+	Profile        string `json:"profile"`
+	FollowedByUser bool   `json:"followed_by_user"`
 }
 
 func (h *UserHandler) GetFollowers(c echo.Context) error {
+	clientUserID := c.Get("user_id").(int)
 	displayID := c.Param("displayID")
 
-	userID, err := h.getUserIDByDisplayID(displayID)
+	targetUserID, err := h.getUserIDByDisplayID(displayID)
 
 	var followers []model.UserProfile
 	err = h.db.Select(&followers, `
@@ -167,7 +169,7 @@ func (h *UserHandler) GetFollowers(c echo.Context) error {
 		FROM user_profiles
 		JOIN follows ON user_profiles.user_id = follows.follower_id
 		WHERE follows.followee_id = ?
-	`, userID)
+	`, targetUserID)
 
 	if err != nil {
 		log.Println(err)
@@ -177,14 +179,20 @@ func (h *UserHandler) GetFollowers(c echo.Context) error {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
+	isFollowed, err := h.isFollowed(targetUserID, clientUserID)
+	if err != nil {
+		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+	}
+
 	res := make([]GetFollowersResponse, len(followers))
 	for i, follower := range followers {
 		res[i] = GetFollowersResponse{
-			ID:        follower.ID,
-			Name:      follower.Name,
-			DisplayID: follower.DisplayID,
-			IconURL:   follower.IconURL,
-			Profile:   follower.Profile,
+			ID:             follower.ID,
+			Name:           follower.Name,
+			DisplayID:      follower.DisplayID,
+			IconURL:        follower.IconURL,
+			Profile:        follower.Profile,
+			FollowedByUser: isFollowed,
 		}
 	}
 
@@ -192,17 +200,19 @@ func (h *UserHandler) GetFollowers(c echo.Context) error {
 }
 
 type GetFolloweesResponse struct {
-	ID        int    `json:"id"`
-	DisplayID string `json:"display_id"`
-	Name      string `json:"name"`
-	IconURL   string `json:"icon_url"`
-	Profile   string `json:"profile"`
+	ID             int    `json:"id"`
+	DisplayID      string `json:"display_id"`
+	Name           string `json:"name"`
+	IconURL        string `json:"icon_url"`
+	Profile        string `json:"profile"`
+	FollowedByUser bool   `json:"followed_by_user"`
 }
 
 func (h *UserHandler) GetFollowees(c echo.Context) error {
+	clientUserID := c.Get("user_id").(int)
 	displayID := c.Param("displayID")
 
-	userID, err := h.getUserIDByDisplayID(displayID)
+	targetUserID, err := h.getUserIDByDisplayID(displayID)
 
 	var followees []model.UserProfile
 	err = h.db.Select(&followees, `
@@ -210,7 +220,7 @@ func (h *UserHandler) GetFollowees(c echo.Context) error {
 		FROM user_profiles
 		JOIN follows ON user_profiles.user_id = follows.followee_id
 		WHERE follows.follower_id = ?
-	`, userID)
+	`, targetUserID)
 
 	if err != nil {
 		log.Println(err)
@@ -220,20 +230,27 @@ func (h *UserHandler) GetFollowees(c echo.Context) error {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
+	isFollowed, err := h.isFollowed(targetUserID, clientUserID)
+	if err != nil {
+		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+	}
+
 	res := make([]GetFolloweesResponse, len(followees))
 	for i, followee := range followees {
 		res[i] = GetFolloweesResponse{
-			ID:        followee.ID,
-			Name:      followee.Name,
-			DisplayID: followee.DisplayID,
-			IconURL:   followee.IconURL,
-			Profile:   followee.Profile,
+			ID:             followee.ID,
+			Name:           followee.Name,
+			DisplayID:      followee.DisplayID,
+			IconURL:        followee.IconURL,
+			Profile:        followee.Profile,
+			FollowedByUser: isFollowed,
 		}
 	}
 
 	return c.JSON(200, res)
 }
 
+// 1 -> 2のフォロー関係のboolを返す
 func (h *UserHandler) isFollowed(followerID, followeeID int) (bool, error) {
 	var count int
 	err := h.db.Get(&count, "SELECT COUNT(*) FROM follows WHERE follower_id = ? AND followee_id = ?", followerID, followeeID)
