@@ -77,7 +77,7 @@ export const Tweet = () => {
           </div>
         </div>
         <div className="Tweet__form__footer" >
-          <Button type="submit" active={true} >ツイート</Button>
+          <Button type="submit" buttonActive={true} >ツイート</Button>
         </div>
       </form>
       {error && <p>{error.message}</p>}

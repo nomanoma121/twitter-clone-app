@@ -56,7 +56,7 @@ export const TweetForm = ({ user, refetch }) => {
       <form action={submitAction} className="TweetForm__form">
         <input type="text" name="content" className="TweetForm__form__input" placeholder="いまどうしてる？" />
         <div className="TweetForm__form__border"></div>
-        <Button type="submit" className="TweetForm__form__button" active={true}>ツイートする</Button>
+        <Button type="submit" className="TweetForm__form__button" buttonActive={true}>ツイートする</Button>
       </form>
       {error && <p>{error.message}</p>}
     </div>

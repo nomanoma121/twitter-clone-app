@@ -114,7 +114,7 @@ export const TweetDetail = () => {
                 <Button
                   type="submit"
                   className="TweetDetail__reply__button"
-                  active={true}
+                  buttonActive={true}
                   onClick={() =>
                     navigate("/compose/tweet", {
                       state: {
