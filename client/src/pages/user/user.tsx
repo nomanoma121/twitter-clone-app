@@ -5,7 +5,7 @@ import { serverFetch } from "../../utils/fetch";
 import { Header } from "../../components/header";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
-import{ useUser } from "./internal/hooks/use-user";
+import{ useUser } from "../../hooks/use-user";
 
 export const User = () => {
   const { user } = useAuth();
