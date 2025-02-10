@@ -80,7 +80,7 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 	// あるユーザーがこのユーザーをフォローしているか
-	isFollowed, err := h.isFollowed(user.ID, userID)
+	isFollowed, err := h.isFollowed(userID, targetUserID)
 	if err != nil {
 		log.Println(err)
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
@@ -258,7 +258,7 @@ func (h *UserHandler) GetFollowees(c echo.Context) error {
 }
 
 // 1 -> 2のフォロー関係のboolを返す
-func (h *UserHandler) isFollowed(followeeID, followerID int) (bool, error) {
+func (h *UserHandler) isFollowed(followerID, followeeID int) (bool, error) {
 	var count int
 	err := h.db.Get(&count, "SELECT COUNT(*) FROM follows WHERE follower_id = ? AND followee_id = ?", followerID, followeeID)
 	if err != nil {
