@@ -1,57 +1,41 @@
 import { Tabbar } from "../../components/tabbar/tabbar";
 import { UserList } from "./internal/components/user-list/user-list";
-import { useNavigate, useParams } from "react-router";
-import { serverFetch } from "../../utils/fetch";
-import { TUser } from "../../types/user";
-import { useEffect, useState } from "react";
+import { useNavigate, useParams, useLocation } from "react-router";
+import { useFollows } from "./internal/hooks/use-follows";
 
-type FollowProps = {
-  viewMode: "following" | "followers";
-};
-
-export const Follow = ({ viewMode }: FollowProps) => {
+export const Follow = () => {
   const { displayID } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
-  const [follows, setFollows] = useState<TUser | null>(null);
+  const currentPath = location.pathname.split("/").pop();
+
   if (!displayID) {
-    return <div>404 Not Found</div>;
+    return <div>loading...</div>;
   }
+
+  console.log(displayID, currentPath);
+  const { follows, fetchFollows } = useFollows(displayID, currentPath as "following" | "followers");
 
   const switchTab = () => {
     navigate(
-      `/${displayID}/${viewMode === "following" ? "followers" : "following"}`
+      `/${displayID}/${currentPath === "followers" ? "following" : "followers"}`
     );
   };
-
-  const fetchFollows = async () => {
-    const res = await serverFetch(
-      `/api/users/${displayID}/${
-        viewMode === "following" ? "followees" : "followers"
-      }`
-    );
-    if (res.ok) {
-      const data = await res.json();
-      setFollows(data);
-      console.log(data);
-    }
-  };
-
-  useEffect(() => {
-    fetchFollows();
-  }, [viewMode]);
 
   if (!follows) {
     return <div>loading...</div>;
   }
+
+  console.log(follows);
 
   return (
     <div>
       <Tabbar
         titles={{ first: "フォロワー", second: "フォロー中" }}
         switchTab={switchTab}
-        defaultTab={viewMode === "following" ? "second" : "first"}
+        defaultTab={currentPath === "following" ? "second" : "first"}
       />
-      <UserList users={follows} />
+      <UserList users={follows} refetch={fetchFollows} />
     </div>
   );
 };
