@@ -1,4 +1,4 @@
-import { serverFetch } from "../../../../utils/fetch";
+import { followAPI } from "../../../../utils/followAPI";
 import { SlCalender } from "react-icons/sl";
 import { UserIcon } from "../../../../components/user-icon";
 import { Button } from "../../../../components/button";
@@ -15,10 +15,7 @@ export const UserProfile = ({ user, refetch }: UserProfileProps) => {
   const navigate = useNavigate();
   const handleFollow = async () => {
     const method = user?.followed_by_user ? "DELETE" : "POST";
-    const endpoint = user?.followed_by_user ? "unfollow" : "follow";
-    const res = await serverFetch(`/api/users/${user.display_id}/${endpoint}`, {
-      method,
-    });
+    const res = await followAPI(user.display_id, method);
     if (res.ok) {
       refetch();
     }
@@ -43,7 +40,7 @@ export const UserProfile = ({ user, refetch }: UserProfileProps) => {
           </div>
           <div className="User__profile__info">
             <div className="User__profile__follow">
-              <Button onClick={handleFollow} active={user?.followed_by_user}>
+              <Button onClick={handleFollow} buttonActive={user?.followed_by_user}>
                 {user?.followed_by_user ? "フォロー中" : "フォロー"}
               </Button>
             </div>
@@ -56,11 +53,11 @@ export const UserProfile = ({ user, refetch }: UserProfileProps) => {
             </div>
             <div className="User__profile__counts">
               <div className="User__profile__counts__item" onClick={() => navigate(`/${user.display_id}/following`)} >
-                <div>{user.followee_counts}</div>
+                <div>{user.follower_counts}</div>
                 <div className="User__profile__counts__follow">フォロー中</div>
               </div>
               <div className="User__profile__counts__item" onClick={() => navigate(`/${user.display_id}/followers`)} >
-                <div>{user.follower_counts}</div>
+                <div>{user.followee_counts}</div>
                 <div className="User__profile__counts__follow">フォロワー</div>
               </div>
             </div>
