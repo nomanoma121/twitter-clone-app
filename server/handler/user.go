@@ -22,12 +22,12 @@ func NewUserHandler(db *sqlx.DB) *UserHandler {
 }
 
 func (h *UserHandler) Register(g *echo.Group) {
-	g.POST("/users/:id/follow", h.Follow)
-	g.DELETE("/users/:id/unfollow", h.Unfollow)
+	g.POST("/users/:displayID/follow", h.Follow)
+	g.DELETE("/users/:displayID/unfollow", h.Unfollow)
 	g.GET("/users/:displayID/followers", h.GetFollowers)
 	g.GET("/users/:displayID/followees", h.GetFollowees)
-	g.GET("/users/:id", h.GetUser)
-	g.GET("/users/:id/tweet-counts", h.GetTweetCounts)
+	g.GET("/users/:displayID", h.GetUser)
+	g.GET("/users/:displayID/tweet-counts", h.GetTweetCounts)
 }
 
 type GetUserResponse struct {
@@ -57,7 +57,7 @@ type UserData struct {
 
 func (h *UserHandler) GetUser(c echo.Context) error {
 	userID := c.Get("user_id").(int)
-	displayID := c.Param("id")
+	displayID := c.Param("displayID")
 
 	targetUserID, err := h.getUserIDByDisplayID(displayID)
 	if err != nil {
@@ -112,7 +112,7 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 
 func (h *UserHandler) Follow(c echo.Context) error {
 	followerUserID := c.Get("user_id").(int)
-	displayID := c.Param("id")
+	displayID := c.Param("displayID")
 
 	followeeUserID, err := h.getUserIDByDisplayID(displayID)
 	if err != nil {
@@ -130,7 +130,7 @@ func (h *UserHandler) Follow(c echo.Context) error {
 
 func (h *UserHandler) Unfollow(c echo.Context) error {
 	followerUserID := c.Get("user_id").(int)
-	displayID := c.Param("id")
+	displayID := c.Param("displayID")
 
 	followeeUserID, err := h.getUserIDByDisplayID(displayID)
 	if err != nil {
@@ -283,7 +283,7 @@ type GetTweetCountsResponse struct {
 }
 
 func (h *UserHandler) GetTweetCounts(c echo.Context) error {
-	displayID := c.Param("id")
+	displayID := c.Param("displayID")
 
 	userID, err := h.getUserIDByDisplayID(displayID)
 	if err != nil {
