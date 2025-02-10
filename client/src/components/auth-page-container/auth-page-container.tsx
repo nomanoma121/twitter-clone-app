@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router";
 import { FaTwitter } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
-import "./auth-container.css";
+import "./auth-page-container.css";
 
-export const AuthContainer = ({ children }: React.PropsWithChildren<{}>) => {
+export const AuthPageContainer = ({ children }: React.PropsWithChildren<{}>) => {
   const navigate = useNavigate();
   return (
     <div className="AuthContainer">
