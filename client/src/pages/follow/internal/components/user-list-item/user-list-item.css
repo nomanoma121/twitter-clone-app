@@ -31,6 +31,10 @@
   font-weight: 600;
 }
 
+.UserListItem__info__name__name:hover {
+  text-decoration: underline;
+}
+
 .UserListItem__info__name__display-id {
   font-size: 15px;
   color: rgb(101, 119, 134);
