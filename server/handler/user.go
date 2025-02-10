@@ -25,7 +25,7 @@ func (h *UserHandler) Register(g *echo.Group) {
 	g.POST("/users/:id/follow", h.Follow)
 	g.DELETE("/users/:id/unfollow", h.Unfollow)
 	g.GET("/users/:displayID/followers", h.GetFollowers)
-	g.GET("/users/:displayID/following", h.GetFollowees)
+	g.GET("/users/:displayID/followees", h.GetFollowees)
 	g.GET("/users/:id", h.GetUser)
 	g.GET("/users/:id/tweet-counts", h.GetTweetCounts)
 }
@@ -111,10 +111,10 @@ func (h *UserHandler) GetUser(c echo.Context) error {
 }
 
 func (h *UserHandler) Follow(c echo.Context) error {
-	followeeUserID := c.Get("user_id").(int)
+	followerUserID := c.Get("user_id").(int)
 	displayID := c.Param("id")
 
-	followerUserID, err := h.getUserIDByDisplayID(displayID)
+	followeeUserID, err := h.getUserIDByDisplayID(displayID)
 	if err != nil {
 		return c.JSON(404, map[string]string{"message": "User not found"})
 	}
@@ -129,15 +129,14 @@ func (h *UserHandler) Follow(c echo.Context) error {
 }
 
 func (h *UserHandler) Unfollow(c echo.Context) error {
-	followeeUserID := c.Get("user_id").(int)
+	followerUserID := c.Get("user_id").(int)
 	displayID := c.Param("id")
 
-	followerUserID, err := h.getUserIDByDisplayID(displayID)
+	followeeUserID, err := h.getUserIDByDisplayID(displayID)
 	if err != nil {
 		return c.JSON(404, map[string]string{"message": "User not found"})
 	}
 
-	log.Println(followerUserID, followeeUserID)
 
 	_, err = h.db.Exec("DELETE FROM follows WHERE follower_id = ? AND followee_id = ?", followerUserID, followeeUserID)
 	if err != nil {
@@ -179,7 +178,11 @@ func (h *UserHandler) GetFollowers(c echo.Context) error {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
-	isFollowed, err := h.isFollowed(targetUserID, clientUserID)
+	var isFollowedMap = make([]bool, len(followers))
+	for i, follower := range followers {
+		isFollowedMap[i], err = h.isFollowed(clientUserID, follower.ID)
+	}
+
 	if err != nil {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
@@ -192,7 +195,7 @@ func (h *UserHandler) GetFollowers(c echo.Context) error {
 			DisplayID:      follower.DisplayID,
 			IconURL:        follower.IconURL,
 			Profile:        follower.Profile,
-			FollowedByUser: isFollowed,
+			FollowedByUser: isFollowedMap[i],
 		}
 	}
 
@@ -230,7 +233,11 @@ func (h *UserHandler) GetFollowees(c echo.Context) error {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
-	isFollowed, err := h.isFollowed(targetUserID, clientUserID)
+	var isFollowedMap = make([]bool, len(followees))
+	for i, followee := range followees {
+		isFollowedMap[i], err = h.isFollowed(clientUserID, followee.ID)
+	}
+
 	if err != nil {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
@@ -243,7 +250,7 @@ func (h *UserHandler) GetFollowees(c echo.Context) error {
 			DisplayID:      followee.DisplayID,
 			IconURL:        followee.IconURL,
 			Profile:        followee.Profile,
-			FollowedByUser: isFollowed,
+			FollowedByUser: isFollowedMap[i],
 		}
 	}
 
@@ -251,7 +258,7 @@ func (h *UserHandler) GetFollowees(c echo.Context) error {
 }
 
 // 1 -> 2のフォロー関係のboolを返す
-func (h *UserHandler) isFollowed(followerID, followeeID int) (bool, error) {
+func (h *UserHandler) isFollowed(followeeID, followerID int) (bool, error) {
 	var count int
 	err := h.db.Get(&count, "SELECT COUNT(*) FROM follows WHERE follower_id = ? AND followee_id = ?", followerID, followeeID)
 	if err != nil {
