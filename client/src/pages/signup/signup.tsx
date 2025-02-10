@@ -1,5 +1,6 @@
 import "./signup.css";
 import { useActionState, useCallback } from "react";
+import { AuthPageContainer } from "../../components/auth-page-container";
 import { serverFetch } from "../../utils/fetch";
 import { Input } from "../../components/input";
 import { Button } from "../../components/button/button";
@@ -24,7 +25,12 @@ export const SignUp = () => {
       const password = formData.get("password");
       const display_id = formData.get("display_id");
 
-      if (name === null || display_id === null || email === null || password === null) {
+      if (
+        name === null ||
+        display_id === null ||
+        email === null ||
+        password === null
+      ) {
         return { message: "メールアドレスとパスワードを入力してください" };
       }
 
@@ -69,44 +75,46 @@ export const SignUp = () => {
   });
 
   return (
-    <form action={submitAction} className="SignUp">
-      <h1>SignUp</h1>
-      <table className="SignUp__FormTable">
-        <tbody>
-          <tr>
-            <td>名前</td>
-            <td>
-              <Input type="text" name="name" required />
-            </td>
-          </tr>
-          <tr>
-            <td>ユーザーID</td>
-            <td>
-              <Input type="text" name="display_id" required />
-            </td>
-          </tr>
-          <tr>
-            <td>メールアドレス</td>
-            <td>
-              <Input type="email" name="email" required />
-            </td>
-          </tr>
-          <tr>
-            <td>パスワード</td>
-            <td>
-              <Input type="password" name="password" required />
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <Button type="submit" disabled={isPending}>
-        登録
-      </Button>
-      {error.message && <p className="SignUp__Error">{error.message}</p>}
-      <p>
-        アカウントをお持ちの方は
-        <Link to="/login">こちら</Link>
-      </p>
-    </form>
+    <AuthPageContainer>
+      <form action={submitAction} className="SignUp">
+        <h1>アカウント作成</h1>
+        <table className="SignUp__FormTable">
+          <tbody>
+            <tr>
+              <td>名前</td>
+              <td>
+                <Input type="text" name="name" required />
+              </td>
+            </tr>
+            <tr>
+              <td>ユーザーID</td>
+              <td>
+                <Input type="text" name="display_id" required />
+              </td>
+            </tr>
+            <tr>
+              <td>メールアドレス</td>
+              <td>
+                <Input type="email" name="email" required />
+              </td>
+            </tr>
+            <tr>
+              <td>パスワード</td>
+              <td>
+                <Input type="password" name="password" required />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <Button type="submit" disabled={isPending}>
+          登録
+        </Button>
+        {error.message && <p className="SignUp__Error">{error.message}</p>}
+        <p>
+          アカウントをお持ちの方は
+          <Link to="/login">こちら</Link>
+        </p>
+      </form>
+    </AuthPageContainer>
   );
 };

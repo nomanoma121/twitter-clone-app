@@ -4,7 +4,7 @@ import { Input } from "../../components/input";
 import { Button } from "../../components/button/button";
 import { Link, useNavigate } from "react-router";
 import { useAuth } from "../../provider/auth";
-import { AuthContainer } from "../../components/auth-container";
+import { AuthPageContainer } from "../../components/auth-page-container";
 import "./login.css";
 
 type LoginFormStateType = {
@@ -63,8 +63,8 @@ export const Login = () => {
   });
 
   return (
-    <AuthContainer>
-      <form className="Login" onSubmit={submitAction}>
+    <AuthPageContainer>
+      <form className="Login" action={submitAction}>
         <h1>Twitterにログイン</h1>
         <table className="Login__FormTable">
           <tbody>
@@ -91,6 +91,6 @@ export const Login = () => {
           <Link to="/signup">登録</Link>
         </p>
       </form>
-    </AuthContainer>
+    </AuthPageContainer>
   );
 };
