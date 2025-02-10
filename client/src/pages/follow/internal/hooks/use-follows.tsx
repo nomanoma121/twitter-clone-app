@@ -5,8 +5,6 @@ import { TUser } from '../../../../types/user';
 type TUrl = "following" | "followers";
 
 export const useFollows = (displayID: string, mode: TUrl) => {
-  console.log("Mode: ", mode);
-  console.log("Display ID: ", displayID);
   const [follows, setFollows] = useState<TUser[] | null>(null);
   const url = mode === "following" ? "followees" : "followers";
   
