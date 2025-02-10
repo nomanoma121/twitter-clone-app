@@ -2,8 +2,9 @@ import { followAPI } from "../../../../utils/followAPI";
 import { SlCalender } from "react-icons/sl";
 import { UserIcon } from "../../../../components/user-icon";
 import { Button } from "../../../../components/button";
-import "./user-profile.css";
+import { Spinner } from "../../../../components/spinner";
 import { useNavigate } from "react-router";
+import "./user-profile.css";
 
 // TODO: Userの型を何とかする
 type UserProfileProps = {
@@ -64,7 +65,7 @@ export const UserProfile = ({ user, refetch }: UserProfileProps) => {
           </div>
         </div>
       ) : (
-        <div>loading...</div>
+        <Spinner />
       )}
     </>
   );

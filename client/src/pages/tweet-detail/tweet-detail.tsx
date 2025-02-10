@@ -14,6 +14,7 @@ import { ReplyButton } from "../../components/reply-button";
 import { Button } from "../../components/button";
 import { useLocation } from "react-router";
 import "./tweet-detail.css";
+import { Spinner } from "../../components/spinner";
 
 export const TweetDetail = () => {
   const [tweet, setTweet] = useState<TTweet | null>(null);
@@ -61,7 +62,7 @@ export const TweetDetail = () => {
       <Header title={"ツイートする"} />
       <div className="TweetDetail">
         {!tweet ? (
-          <div>loading...</div>
+          <Spinner />
         ) : (
           <>
             <div className="TweetDetail__tweet">
@@ -130,7 +131,7 @@ export const TweetDetail = () => {
             </div>
             <div>
               {!tweets ? (
-                <div>loading...</div>
+                <Spinner />
               ) : (
                 <TweetList tweets={tweets} refetch={fetchTweets} />
               )}

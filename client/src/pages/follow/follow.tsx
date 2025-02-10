@@ -4,6 +4,7 @@ import { UserList } from "./internal/components/user-list/user-list";
 import { useNavigate, useParams, useLocation } from "react-router";
 import { useFollows } from "./internal/hooks/use-follows";
 import { useUser } from "../../hooks/use-user";
+import { Spinner } from "../../components/spinner/spinner";
 
 export const Follow = () => {
   const { displayID } = useParams();
@@ -12,7 +13,11 @@ export const Follow = () => {
   const currentPath = location.pathname.split("/").pop();
 
   if (!displayID) {
-    return <div>loading...</div>;
+    return (
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", height: "100%" }}>
+        <Spinner />
+      </div>
+    )
   }
 
   const { follows, fetchFollows } = useFollows(displayID, currentPath as "following" | "followers");
@@ -25,7 +30,7 @@ export const Follow = () => {
   };
 
   if (!follows || !userData) {
-    return <div>loading...</div>;
+    return <Spinner />;
   }
 
   return (
