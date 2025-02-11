@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"server/middleware"
 	"server/model"
 
@@ -40,10 +41,10 @@ type SignupRequest struct {
 }
 
 type TokenUserResponse struct {
-	ID    int    `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
+	ID        int    `json:"id"`
+	Name      string `json:"name"`
 	DisplayID string `json:"display_id"`
+	IconURL   string `json:"icon_url"`
 }
 
 type TokenResponse struct {
@@ -87,13 +88,15 @@ func (h *AuthHandler) Signup(c echo.Context) error {
 	if err != nil {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
-	var username string
-	err = h.db.Get(&username, "SELECT name FROM user_profiles WHERE user_id = ?", user.ID)
+
+	userProfile, err := h.getUserProfileByID(int(id))
 	if err != nil {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
-	return c.JSON(200, TokenResponse{Token: token, User: TokenUserResponse{ID: user.ID, Name: username, Email: user.Email}})
+	log.Printf("%v", userProfile)
+
+	return c.JSON(200, TokenResponse{Token: token, User: TokenUserResponse{ID: user.ID, Name: userProfile.Name, DisplayID: userProfile.DisplayID, IconURL: userProfile.IconURL}})
 }
 
 type LoginRequest struct {
@@ -104,35 +107,43 @@ type LoginRequest struct {
 func (h *AuthHandler) Login(c echo.Context) error {
 	req := new(LoginRequest)
 	if err := c.Bind(req); err != nil {
+		log.Printf("%v", err)
 		return c.JSON(400, map[string]string{"message": "Bad Request"})
 	}
 
 	if err := h.validator.Struct(req); err != nil {
+		log.Printf("%v", err)
 		return c.JSON(400, map[string]string{"message": "Bad Request"})
 	}
 
 	var user model.User
 	err := h.db.Get(&user, "SELECT * FROM users WHERE email = ?", req.Email)
 	if err != nil {
-		return c.JSON(401, map[string]string{"message": "Unauthorized"})
-	}
-	var username string
-	err = h.db.Get(&username, "SELECT name FROM user_profiles WHERE user_id = ?", user.ID)
-	if err != nil {
+		log.Printf("%v", err)
 		return c.JSON(401, map[string]string{"message": "Unauthorized"})
 	}
 
+	userProfile, err := h.getUserProfileByID(user.ID)
+	if err != nil {
+		log.Printf("%v", err)
+		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
+	}
+
+	log.Printf("%v", userProfile)
+
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password))
 	if err != nil {
+		log.Printf("%v", err)
 		return c.JSON(401, map[string]string{"message": "Unauthorized"})
 	}
 
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{"user_id": user.ID}).SignedString([]byte(h.secret))
 	if err != nil {
+		log.Printf("%v", err)
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
-	return c.JSON(200, TokenResponse{Token: token, User: TokenUserResponse{ID: user.ID, Name: username, Email: user.Email}})
+	return c.JSON(200, TokenResponse{Token: token, User: TokenUserResponse{ID: user.ID, Name: userProfile.Name, DisplayID: userProfile.DisplayID, IconURL: userProfile.IconURL}})
 }
 
 type MeResponse struct {
@@ -150,11 +161,28 @@ func (h *AuthHandler) Me(c echo.Context) error {
 	if err != nil {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
-	var userProfile model.UserProfile
-	err = h.db.Get(&userProfile, "SELECT name, display_id, icon_url FROM user_profiles WHERE user_id = ?", userID)
+
+	userProfile, err := h.getUserProfileByID(userID)
 	if err != nil {
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
 	return c.JSON(200, MeResponse{ID: user.ID, Name: userProfile.Name, DisplayID: userProfile.DisplayID, IconURL: userProfile.IconURL})
+}
+
+type UserProfile struct {
+	Name      string `db:"name"`
+	DisplayID string `db:"display_id"`
+	IconURL   string `db:"icon_url"`
+}
+
+func (h *AuthHandler) getUserProfileByID(userID int) (UserProfile, error) {
+	var userProfile UserProfile
+	// user_profilesテーブルからname, display_id, icon_urlを取得
+	err := h.db.Get(&userProfile, "SELECT name, display_id, icon_url FROM user_profiles WHERE user_id = ?", userID)
+	if err != nil {
+		return userProfile, err
+	}
+
+	return userProfile, nil
 }
