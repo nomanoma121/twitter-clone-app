@@ -1,1 +1,1 @@
-export *  from "./internal/components/user-list";
+export * from "./user-list";

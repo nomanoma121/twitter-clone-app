@@ -1,6 +1,6 @@
 import { Tabbar } from "../../components/tabbar/tabbar";
 import { Header } from "../../components/header/header";
-import { UserList } from "./internal/components/user-list/user-list";
+import { UserList } from "./internal/components/user-list";
 import { useNavigate, useParams, useLocation } from "react-router";
 import { useFollows } from "./internal/hooks/use-follows";
 import { useUser } from "../../hooks/use-user";
