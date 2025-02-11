@@ -20,40 +20,38 @@ function App() {
   const state = location.state as { background: Location };
   const background = state?.background;
   return (
-    <Routes>
-      {/* 未ログイン時のルート */}
-      <Route element={<TopLayout />}>
-        <Route path="/" element={<Top />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />
-      </Route>
-      
-      {/* ログイン後のルート */}
-      <Route element={<DefaultLayout />}>
-        <Route
-          path="/home"
-          element={
-            <AuthGuard>
-              <Home />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/:displayID/status/:tweetID"
-          element={<TweetDetail />}
-        />
-        <Route path="/:displayID" element={<User />} />
-        <Route path="/:displayID/following" element={<Follow />} />
-        <Route path="/:displayID/followers" element={<Follow />} />
-      </Route>
+    <>
+      <Routes location={background || location}>
+        {/* 未ログイン時のルート */}
+        <Route element={<TopLayout />}>
+          <Route path="/" element={<Top />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
+        </Route>
 
+        {/* ログイン後のルート */}
+        <Route element={<DefaultLayout />}>
+          <Route
+            path="/home"
+            element={
+              <AuthGuard>
+                <Home />
+              </AuthGuard>
+            }
+          />
+          <Route path="/:displayID/status/:tweetID" element={<TweetDetail />} />
+          <Route path="/:displayID" element={<User />} />
+          <Route path="/:displayID/following" element={<Follow />} />
+          <Route path="/:displayID/followers" element={<Follow />} />
+        </Route>
+      </Routes>
       {/* モーダル用のルート */}
       {background && location.pathname === "/compose/tweet" && (
         <Modal>
           <Tweet />
         </Modal>
       )}
-    </Routes>
+    </>
   );
 }
 
