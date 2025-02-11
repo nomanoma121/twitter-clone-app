@@ -26,8 +26,8 @@ func Migrate(db *sqlx.DB) error {
 			user_id INT NOT NULL UNIQUE,
 			name VARCHAR(255) NOT NULL,
 			display_id VARCHAR(255) NOT NULL UNIQUE,
-			icon_url VARCHAR(255),
-			header_url VARCHAR(255),
+			icon_url VARCHAR(255) NOT NULL,
+			header_url VARCHAR(255) NOT NULL,
 			profile TEXT,
 			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
