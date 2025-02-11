@@ -3,8 +3,8 @@ import { lazy } from "react";
 import { AuthGuard } from "./components/auth-guard";
 import { TweetDetail } from "./pages/tweet-detail";
 import { Modal } from "./components/modal";
-import { TopLayout } from "./Layouts/top-layouts";
-import { DefaultLayout } from "./Layouts/default-layouts";
+import { TopLayout } from "./layouts/top-layouts";
+import { DefaultLayout } from "./layouts/default-layouts";
 
 const Top = lazy(() => import("./pages/top"));
 const Login = lazy(() => import("./pages/login"));
