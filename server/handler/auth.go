@@ -13,6 +13,12 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
+const (
+	DEFAULT_ICON_URL = "http://localhost:5173/images/default-icon.webp"
+	DEFAULT_HEADER_URL = "http://localhost:5173/images/default-header.webp"
+	DEFAULT_PROFILE = ""
+)
+
 type AuthConfig struct {
 	Hash string
 }
@@ -55,42 +61,50 @@ type TokenResponse struct {
 func (h *AuthHandler) Signup(c echo.Context) error {
 	req := new(SignupRequest)
 	if err := c.Bind(req); err != nil {
+		log.Printf("%v", err)
 		return c.JSON(400, map[string]string{"message": "Bad Request"})
 	}
 
 	if err := h.validator.Struct(req); err != nil {
+		log.Printf("%v", err)
 		return c.JSON(400, map[string]string{"message": "Bad Request"})
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
+		log.Printf("%v", err)
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
 	res, err := h.db.Exec("INSERT INTO users (email, password_hash) VALUES (?, ?)", req.Email, string(hash))
 	if err != nil {
+		log.Printf("%v", err)
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
 	id, err := res.LastInsertId()
 	if err != nil {
+		log.Printf("%v", err)
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
-	_, err = h.db.Exec("INSERT INTO user_profiles (user_id, name, display_id) VALUES (?, ?, ?)", id, req.Name, req.DisplayID)
+	_, err = h.db.Exec("INSERT INTO user_profiles (user_id, name, display_id, header_url, icon_url, profile) VALUES (?, ?, ?, ?, ?, ?)", id, req.Name, req.DisplayID, DEFAULT_HEADER_URL, DEFAULT_ICON_URL, DEFAULT_PROFILE)
 
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{"user_id": id}).SignedString([]byte(h.secret))
 	if err != nil {
+		log.Printf("%v", err)
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
 	var user model.User
 	err = h.db.Get(&user, "SELECT * FROM users WHERE id = ?", id)
 	if err != nil {
+		log.Printf("%v", err)
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
 	userProfile, err := h.getUserProfileByID(int(id))
 	if err != nil {
+		log.Printf("%v", err)
 		return c.JSON(500, map[string]string{"message": "Internal Server Error"})
 	}
 
