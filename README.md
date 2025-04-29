@@ -1,10 +1,6 @@
-# Go React Full Stack Web App Template
+# Twitter Clone App
 
-このテンプレートは、Go言語とReactを使ったフルスタックWebアプリケーションの開発を始めるためのものです。
-
-## 概要
-
-このテンプレートは、以下の技術を使ってフルスタックWebアプリケーションを開発するためのものです。
+## 技術スタック
 
 - [Go](https://golang.org/)
 - [React](https://reactjs.org/)
@@ -12,42 +8,6 @@
 - [MySQL](https://www.mysql.com/)
 - [Nginx](https://www.nginx.com/)
 - [JWT](https://jwt.io/)
-
-## 始め方
-
-プロジェクトフォルダを作って、その中でGitリポジトリを初期化します。
-
-```bash
-mkdir <プロジェクト名>
-cd <プロジェクト名>
-git init
-```
-
-新しくGitリポジトリをGithub上で作成します。そして、originとして追加します。
-
-```bash
-git remote add origin <リポジトリのURL>
-```
-
-次に、このテンプレートをupstreamとして追加します。
-
-```bash
-git remote add upstream https://github.com/saitamau-maximum/go-react-full-stack-web-app-template.git
-```
-
-次に、このテンプレートをupstreamからpullします。
-
-```bash
-git pull upstream main
-```
-
-さいごに、originのmainブランチにpushします。
-
-```bash
-git push origin HEAD
-```
-
-これで、プロジェクトの初期設定が完了しました。あとは好きなように開発を進めてください。
 
 ## 開発方法
 
